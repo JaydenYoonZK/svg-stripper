@@ -1,0 +1,38 @@
+{
+  "name": "svg-stripper",
+  "version": "1.0.0",
+  "description": "Strip the editor bloat out of an SVG in your browser: metadata, comments, fat decimals, and dead attributes gone, gradients, masks, and animation kept, with a before and after preview so you can see nothing was lost.",
+  "type": "module",
+  "private": true,
+  "exports": { ".": "./docs/optimizer.js" },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "serve": "python3 -m http.server 8331 -d docs"
+  },
+  "keywords": [
+    "svg",
+    "svg-optimizer",
+    "svgo",
+    "minify",
+    "compress",
+    "illustrator",
+    "inkscape",
+    "figma",
+    "vector",
+    "web-performance"
+  ],
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/JaydenYoonZK",
+  "author": "Jayden Yoon ZK",
+  "homepage": "https://jaydenyoonzk.github.io/svg-stripper/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JaydenYoonZK/svg-stripper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JaydenYoonZK/svg-stripper/issues"
+  }
+}

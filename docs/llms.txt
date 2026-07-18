@@ -1,0 +1,16 @@
+# SVG Stripper
+
+> Strip the editor bloat out of an SVG in the browser: the XML prolog and DOCTYPE, comments and metadata, Illustrator and Inkscape namespaces, default attributes, and over-precise coordinates are removed, while gradients, clip paths, masks, referenced ids, and animation are kept. A before and after preview shows the picture is unchanged. Runs entirely on the visitor's device with no uploads.
+
+## Tool
+
+- [SVG Stripper](https://jaydenyoonzk.github.io/svg-stripper/): the browser tool, a static page that runs entirely on the visitor's device with no accounts and no data collection
+
+## Documentation
+
+- [README](https://github.com/JaydenYoonZK/svg-stripper#readme): what the tool does, how the optimizer works, and its engineering notes
+- [Changelog](https://github.com/JaydenYoonZK/svg-stripper/blob/main/CHANGELOG.md): dated release history
+
+## Source
+
+- [Repository](https://github.com/JaydenYoonZK/svg-stripper): MIT licensed source code, including the dependency-free optimizer engine
