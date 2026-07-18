@@ -37,14 +37,14 @@
       document.head.appendChild(m);
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=1.1.0">
+  <link rel="stylesheet" href="styles.css?v=1.1.1">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "SVG Stripper",
     "applicationCategory": "DeveloperApplication",
-    "softwareVersion": "1.1.0",
+    "softwareVersion": "1.1.1",
     "operatingSystem": "Any (browser-based)",
     "url": "https://jaydenyoonzk.github.io/svg-stripper/",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -231,6 +231,13 @@
         <span class="compare-badge badge-before">Before</span>
         <span class="compare-badge badge-after">After</span>
       </div>
+      <div class="preview-bg" role="group" aria-label="Preview background">
+        <span class="preview-bg-label">Preview on</span>
+        <button type="button" class="bg-opt is-active" data-bg="checker" aria-pressed="true">Checkerboard</button>
+        <button type="button" class="bg-opt" data-bg="#ffffff" aria-pressed="false">White</button>
+        <button type="button" class="bg-opt" data-bg="#0d0c0a" aria-pressed="false">Black</button>
+        <label class="bg-opt bg-custom"><span>Custom</span><input type="color" id="bg-custom" value="#3a6ff7" aria-label="Custom preview background color"></label>
+      </div>
     </div>
     <p class="compare-note" id="render-note"></p>
 
@@ -369,24 +376,27 @@
       <div>
         <p>Every icon and illustration across my sites started life in a design tool, and every export arrived three or four times bigger than it needed to be. I kept pasting them into an optimizer, squinting at the result to make sure a gradient had not vanished, then copying it back. I wanted one page that does the strip and shows me the before and after at the same time, so I can trust it at a glance. This is that page.</p>
       </div>
-      <svg class="why-art" viewBox="86 66 168 190" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <svg class="why-art art-sprout" viewBox="79 62 180 198" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
         <g>
           <animateTransform attributeName="transform" type="rotate" values="-1.6 170 196; 1.6 170 196; -1.6 170 196" dur="6s" repeatCount="indefinite"/>
-          <path d="M170 196 C168 172 173 150 170 124" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M170 156 C148 152 136 138 134 118 C156 120 168 134 170 156 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
-          <path d="M170 136 C192 130 202 116 204 96 C182 98 172 112 170 136 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M170 190 C169 168 172 150 170 128" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M170 158 C150 154 138 140 136 122 C156 124 168 138 170 158 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M170 138 C190 132 200 118 202 100 C182 102 172 116 170 138 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
         </g>
-        <path d="M126 196 L214 196 L204 246 C203 252 198 256 192 256 L148 256 C142 256 137 252 136 246 Z" fill="var(--panel)" stroke="var(--line-strong)" stroke-width="2"/>
-        <rect x="120" y="190" width="100" height="14" rx="7" fill="var(--panel-2)" stroke="var(--line-strong)" stroke-width="2"/>
+        <path d="M128 190 L212 190 L202 244 C201 250 196 254 190 254 L150 254 C144 254 139 250 138 244 Z" fill="var(--panel)" stroke="var(--line-strong)" stroke-width="2"/>
+        <rect x="122" y="184" width="96" height="14" rx="7" fill="var(--panel-2)" stroke="var(--line-strong)" stroke-width="2"/>
         <g fill="var(--accent)">
-          <path d="M104 100 L107 108 L115 111 L107 114 L104 122 L101 114 L93 111 L101 108 Z">
+          <path d="M96 96 L99 104 L107 107 L99 110 L96 118 L93 110 L85 107 L93 104 Z">
             <animate attributeName="opacity" values="0.2;1;0.2" dur="3.6s" repeatCount="indefinite"/>
           </path>
-          <path d="M236 78 L238.4 84.4 L244.8 87 L238.4 89.6 L236 96 L233.6 89.6 L227.2 87 L233.6 84.4 Z">
+          <path d="M244 70 L246.4 76.4 L252.8 79 L246.4 81.6 L244 88 L241.6 81.6 L235.2 79 L241.6 76.4 Z">
             <animate attributeName="opacity" values="1;0.15;1" dur="4.4s" repeatCount="indefinite"/>
           </path>
-          <circle cx="228" cy="158" r="3">
+          <circle cx="222" cy="150" r="3">
             <animate attributeName="opacity" values="0.25;0.9;0.25" dur="2.9s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="118" cy="146" r="3">
+            <animate attributeName="opacity" values="0.9;0.2;0.9" dur="3.7s" repeatCount="indefinite"/>
           </circle>
         </g>
       </svg>
@@ -408,6 +418,6 @@
 </footer>
 
 <button id="to-top" class="to-top" type="button" aria-label="Back to top">&#8593;</button>
-<script type="module" src="app.js?v=1.1.0"></script>
+<script type="module" src="app.js?v=1.1.1"></script>
 </body>
 </html>

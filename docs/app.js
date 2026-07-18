@@ -1,5 +1,5 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.1.0";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.1.1";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
@@ -90,6 +90,24 @@ divider.addEventListener("keydown", (e) => {
   else if (e.key === "Home") { setWipe(0); e.preventDefault(); }
   else if (e.key === "End") { setWipe(100); e.preventDefault(); }
 });
+
+// Preview background: the checkerboard (transparency) by default, or a solid
+// color, so a logo that is hard to read on the checker can be checked on the
+// background it will actually sit on.
+const previewBg = document.querySelector(".preview-bg");
+if (previewBg) {
+  const setBg = (mode, active) => {
+    previewBg.querySelectorAll(".bg-opt").forEach((b) => {
+      b.classList.toggle("is-active", b === active);
+      if (b.hasAttribute("aria-pressed")) b.setAttribute("aria-pressed", String(b === active));
+    });
+    if (mode === "checker") compareStage.classList.remove("solid");
+    else { compareStage.style.setProperty("--preview-bg", mode); compareStage.classList.add("solid"); }
+  };
+  previewBg.querySelectorAll("button.bg-opt").forEach((btn) => btn.addEventListener("click", () => setBg(btn.dataset.bg, btn)));
+  const bgCustom = $("bg-custom");
+  if (bgCustom) bgCustom.addEventListener("input", () => setBg(bgCustom.value, bgCustom.closest(".bg-opt")));
+}
 
 let renderToken = 0;
 let base = "";      // the stripped SVG, before any recolor
@@ -451,14 +469,14 @@ function buildColorEditor(paints) {
   if (colors.length === 0 && gradients.length === 0) { colorsSection.hidden = true; colorEditor.innerHTML = ""; return; }
   colorsSection.hidden = false;
 
-  let html = `<div class="color-editor-head"><button type="button" class="color-reset" id="color-reset"${Object.keys(recolor).length ? "" : " disabled"}>Reset colors</button></div>`;
+  let html = `<p class="color-hint">Tap a swatch to open the color wheel, or type a HEX, RGB, HSL, or CMYK value.</p><div class="color-editor-head"><button type="button" class="color-reset" id="color-reset"${Object.keys(recolor).length ? "" : " disabled"}>Reset colors</button></div>`;
 
   for (const c of colors) {
     const cur = recolor[c.value] || colorToHex(c.value);
     const rgb = hexToRgb(cur), hsl = rgbToHsl(rgb.r, rgb.g, rgb.b), cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
     const label = esc(c.value);
     html += `<div class="color-row" data-key="${label}">
-      <input type="color" class="color-swatch" data-key="${label}" value="${cur}" aria-label="Color for ${label}">
+      <span class="swatch-wrap"><input type="color" class="color-swatch" data-key="${label}" value="${cur}" aria-label="Color for ${label}"><span class="swatch-cue" aria-hidden="true"></span></span>
       <div class="color-name">${label}<small>${c.uses} part${c.uses > 1 ? "s" : ""}</small></div>
       <div class="color-fields">
         <label class="color-field hex">Hex<input type="text" data-fmt="hex" value="${shortHex(cur)}" spellcheck="false" aria-label="Hex for ${label}"></label>
@@ -477,7 +495,7 @@ function buildColorEditor(paints) {
     });
     const bar = stopBits.map((b) => `${b.cur} ${b.pct}%`).join(", ");
     const stopsHtml = stopBits.map((b) =>
-      `<label class="gradient-stop"><input type="color" class="color-swatch" data-key="${esc(b.key)}" value="${b.cur}" aria-label="Gradient stop at ${b.pct} percent">${b.pct}%</label>`).join("");
+      `<label class="gradient-stop"><span class="swatch-wrap"><input type="color" class="color-swatch" data-key="${esc(b.key)}" value="${b.cur}" aria-label="Gradient stop at ${b.pct} percent"><span class="swatch-cue" aria-hidden="true"></span></span>${b.pct}%</label>`).join("");
     html += `<div class="color-row gradient" data-grad="${esc(g.id)}">
       <div class="gradient-head"><span class="gradient-title">${g.type === "radial" ? "Radial" : "Linear"} gradient</span><div class="gradient-bar" style="background:linear-gradient(90deg, ${bar})"></div></div>
       <div class="gradient-stops">${stopsHtml}</div>

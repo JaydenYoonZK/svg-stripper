@@ -3,6 +3,21 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.1] - 2026-07-19
+
+### Added
+
+- A preview background chooser: the transparency checkerboard, white, black, or a color of your choice, so a graphic can be checked on the background it will sit on.
+
+### Changed
+
+- The before and after divider is thicker, with a dark keyline and a shadow, so it stands out over both the light and the dark checker tiles.
+- Color swatches are rounded and carry a small pencil badge, so it is clear they open a color picker.
+
+### Fixed
+
+- The story section illustration is sized and positioned to match the rest of the page.
+
 ## [1.1.0] - 2026-07-18
 
 ### Added
