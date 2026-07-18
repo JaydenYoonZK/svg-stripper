@@ -3,6 +3,17 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-07-18
+
+### Added
+
+- A color editor. Recolor any solid fill or gradient stop, with a wheel and HEX, RGB, HSL, and CMYK inputs that stay in sync. Changes travel into the SVG you copy or download.
+- The JaydenART logo as a second sample: a real Illustrator export with ten linked gradients.
+
+### Changed
+
+- The before and after preview now reads left to right, with the original on the left, and the divider on the image drags directly, so the separate slider underneath is gone.
+
 ## [1.0.0] - 2026-07-18
 
 First release.

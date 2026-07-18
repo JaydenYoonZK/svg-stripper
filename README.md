@@ -38,6 +38,15 @@ single pixel. SVG Stripper takes it off.
 - `fill-rule="evenodd"` and other non-default values
 - Animation: `<animate>`, `<animateTransform>`, and motion paths
 
+## Recolor
+
+Once an SVG is loaded, the Colors panel lists every solid fill and every
+gradient stop it found. Change any of them from a color wheel or by typing a
+HEX, RGB, HSL, or CMYK value, and the new colors go into the SVG you copy or
+download. CMYK is a convenience that converts to RGB, since SVG on the web is an
+RGB format, so the on-screen preview is the true result. Parts painted the same
+color move together.
+
 ## How it works
 
 The engine ([`docs/optimizer.js`](docs/optimizer.js)) is a small,

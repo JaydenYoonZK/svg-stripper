@@ -1,5 +1,5 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength } from "./optimizer.js?v=1.0.0";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.1.0";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
@@ -10,7 +10,9 @@ const compare = $("compare");
 const compareStage = $("compare-stage");
 const imgBefore = $("img-before");
 const imgAfter = $("img-after");
-const wipe = $("wipe");
+const divider = $("compare-divider");
+const colorsSection = $("colors");
+const colorEditor = $("color-editor");
 const renderNote = $("render-note");
 const output = $("output");
 const copyBtn = $("copy");
@@ -57,22 +59,89 @@ async function gzipSize(str) {
 
 const dataUri = (svg) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
 
-function setWipe() {
-  compareStage.style.setProperty("--wipe", wipe.value + "%");
+// The wipe divider. Drag it, click anywhere on the stage to jump it, or focus
+// it and use the arrow keys. Before sits on the left, the stripped After on the
+// right, so dragging right reveals more of your original.
+let wipePct = 55;
+function setWipe(pct) {
+  wipePct = Math.max(0, Math.min(100, pct));
+  compareStage.style.setProperty("--wipe", wipePct + "%");
+  divider.setAttribute("aria-valuenow", String(Math.round(wipePct)));
 }
-wipe.addEventListener("input", setWipe);
+function pctFromClientX(clientX) {
+  const rect = compareStage.getBoundingClientRect();
+  return rect.width ? ((clientX - rect.left) / rect.width) * 100 : wipePct;
+}
+let dragging = false;
+compareStage.addEventListener("pointerdown", (e) => {
+  dragging = true;
+  compareStage.setPointerCapture?.(e.pointerId);
+  divider.focus?.({ preventScroll: true });
+  setWipe(pctFromClientX(e.clientX));
+  e.preventDefault();
+});
+compareStage.addEventListener("pointermove", (e) => { if (dragging) setWipe(pctFromClientX(e.clientX)); });
+compareStage.addEventListener("pointerup", () => { dragging = false; });
+compareStage.addEventListener("pointercancel", () => { dragging = false; });
+divider.addEventListener("keydown", (e) => {
+  const step = e.shiftKey ? 10 : 2;
+  if (e.key === "ArrowLeft" || e.key === "ArrowDown") { setWipe(wipePct - step); e.preventDefault(); }
+  else if (e.key === "ArrowRight" || e.key === "ArrowUp") { setWipe(wipePct + step); e.preventDefault(); }
+  else if (e.key === "Home") { setWipe(0); e.preventDefault(); }
+  else if (e.key === "End") { setWipe(100); e.preventDefault(); }
+});
 
 let renderToken = 0;
+let base = "";      // the stripped SVG, before any recolor
+let recolor = {};   // key (a color string, or grad:<id>:<index>) -> chosen color
+let originalBytes = 0;
 
 function showControls(enabled) {
   copyBtn.disabled = !enabled;
   downloadBtn.disabled = !enabled;
 }
 
+// Render the final SVG (stripped, then recolored) into the output, the After
+// image, and the stats. Token-guarded so a stale async gzip cannot overwrite a
+// newer run.
+async function renderResult(final, token) {
+  lastOutput = final;
+  output.value = final;
+  showControls(true);
+  imgAfter.src = dataUri(final);
+  compare.hidden = false;
+  setWipe(wipePct);
+
+  const after = byteLength(final);
+  const savedPercent = originalBytes === 0 ? 0 : Math.round(((originalBytes - after) / originalBytes) * 1000) / 10;
+  const savedClass = savedPercent > 0 ? "green" : "";
+  const gz = await gzipSize(final);
+  if (token !== renderToken) return;
+  stats.innerHTML = [
+    `<span class="chip">Original <strong>${formatBytes(originalBytes)}</strong></span>`,
+    `<span class="chip ${savedClass ? "ok" : ""}">Stripped <strong class="${savedClass}">${formatBytes(after)}</strong></span>`,
+    `<span class="chip">Saved <strong class="${savedClass}">${savedPercent}%</strong></span>`,
+    gz != null ? `<span class="chip">Gzipped <strong>${formatBytes(gz)}</strong></span>` : "",
+  ].join("");
+}
+
+// Re-apply the current color choices to the base and re-render, without
+// rebuilding the editor, so an open field keeps focus.
+function applyColorsAndRender() {
+  if (!base) return;
+  renderResult(applyRecolor(base, recolor, currentOptions()), ++renderToken);
+}
+
+// Coalesce recolor renders to one per frame. A native color wheel fires input
+// continuously while dragging, and each render re-serializes the whole SVG and
+// re-rasters the preview, which is wasted work more than once a frame.
+let recolorRaf = 0;
+function scheduleColorRender() {
+  if (recolorRaf) return;
+  recolorRaf = requestAnimationFrame(() => { recolorRaf = 0; applyColorsAndRender(); });
+}
+
 async function run() {
-  // Claim this run up front. A newer run (a fast keystroke or a slider drag)
-  // bumps the token, and anything below the async gzip bails if it is stale, so
-  // a late-finishing older run cannot overwrite the current stats or preview.
   const token = ++renderToken;
   const raw = input.value;
   clearBtn.disabled = raw.length === 0;
@@ -80,7 +149,9 @@ async function run() {
 
   if (raw.trim() === "") {
     results.hidden = true;
+    colorsSection.hidden = true;
     lastOutput = "";
+    base = "";
     showControls(false);
     return;
   }
@@ -91,53 +162,43 @@ async function run() {
   if (!result.ok) {
     stats.innerHTML = "";
     compare.hidden = true;
+    colorsSection.hidden = true;
     renderNote.textContent = "";
     output.value = "";
     lastOutput = "";
+    base = "";
     showControls(false);
     alerts.innerHTML = `<div class="alert info" role="status">${esc(result.error)}</div>`;
     return;
   }
 
-  lastOutput = result.svg;
-  output.value = result.svg;
-  showControls(true);
+  base = result.svg;
+  originalBytes = result.before;
+  buildColorEditor(listPaints(base));
 
-  // stats: original, stripped, saved, gzipped
-  const savedClass = result.savedPercent > 0 ? "green" : "";
-  const gz = await gzipSize(result.svg);
-  if (token !== renderToken) return; // a newer run took over while gzip ran
-  stats.innerHTML = [
-    `<span class="chip">Original <strong>${formatBytes(result.before)}</strong></span>`,
-    `<span class="chip ${savedClass ? "ok" : ""}">Stripped <strong class="${savedClass}">${formatBytes(result.after)}</strong></span>`,
-    `<span class="chip">Saved <strong class="${savedClass}">${result.savedPercent}%</strong></span>`,
-    gz != null ? `<span class="chip">Gzipped <strong>${formatBytes(gz)}</strong></span>` : "",
-  ].join("");
-
-  // security and info notes
   const security = result.notes.filter((n) => n.kind === "security");
   alerts.innerHTML = security.length
     ? `<div class="alert" role="alert">🛡️ <strong>Removed some code from this file.</strong> ${security.map((n) => esc(n.text)).join(" ")} The shapes are untouched.</div>`
     : "";
 
-  // before / after preview
   renderNote.textContent = "";
   imgBefore.onerror = () => { if (token === renderToken) renderNote.textContent = "The original markup could not be rendered as an image. Check that it is a complete SVG."; };
   imgAfter.onerror = () => { if (token === renderToken) renderNote.textContent = "The stripped SVG could not be rendered, which should not happen. Please report it."; };
   imgBefore.src = dataUri(raw.trim());
-  imgAfter.src = dataUri(result.svg);
-  compare.hidden = false;
-  setWipe();
+  await renderResult(applyRecolor(base, recolor, currentOptions()), token);
 }
 
 function esc(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  // Escapes for both text content and double-quoted attributes (color labels
+  // and gradient ids from a pasted SVG flow into data- attributes).
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 // Optimizing is cheap, but re-rendering two images on every keystroke is not,
 // so input is debounced. Explicit actions (paste, sample, options) run at once.
 let debounce = 0;
 input.addEventListener("input", () => {
+  recolor = {}; // a new SVG has its own colors; start the recolor over
   clearTimeout(debounce);
   debounce = setTimeout(run, 220);
   // keep the byte count and clear button responsive without waiting
@@ -155,7 +216,7 @@ for (const el of [precision, prettify, keepMeta]) {
 pasteBtn.addEventListener("click", async () => {
   try {
     const text = await navigator.clipboard.readText();
-    if (text) { input.value = text; run(); input.focus(); }
+    if (text) { recolor = {}; input.value = text; run(); input.focus(); }
   } catch {
     // Clipboard read can be blocked or unsupported; focus the box so the
     // native paste (and the iOS paste bubble) is one tap away.
@@ -164,6 +225,7 @@ pasteBtn.addEventListener("click", async () => {
 });
 
 clearBtn.addEventListener("click", () => {
+  recolor = {};
   input.value = "";
   run();
   input.focus();
@@ -210,7 +272,7 @@ input.addEventListener("drop", (e) => {
   }
   const reader = new FileReader();
   reader.onerror = () => { alerts.innerHTML = `<div class="alert info" role="status">That file could not be read.</div>`; };
-  reader.onload = () => { input.value = String(reader.result); run(); };
+  reader.onload = () => { recolor = {}; input.value = String(reader.result); run(); };
   reader.readAsText(file);
 });
 
@@ -233,7 +295,252 @@ const SAMPLE = `<?xml version="1.0" encoding="utf-8"?>
 <path class="st1" d="M56.4000,86.8000L38.0000,68.4000l7.6000-7.6000l12.8000,12.8000l28.0000-28.0000l7.6000,7.6000
 \tL56.4000,86.8000z"/>
 </svg>`;
-$("sample").addEventListener("click", () => { input.value = SAMPLE; run(); });
+$("sample").addEventListener("click", () => { recolor = {}; input.value = SAMPLE; run(); });
+
+// The JaydenART wordmark: a real Adobe Illustrator export with ten linked
+// gradients (some inheriting others via xlink:href) and eleven CSS classes.
+const LOGO_SAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 4098.22 725.7">
+  <!-- Generator: Adobe Illustrator 30.6.0, SVG Export Plug-In . SVG Version: 2.1.4 Build 109)  -->
+  <defs>
+    <style>
+      .st0 { fill: url(#linear-gradient2); }
+      .st1 { fill: url(#linear-gradient1); }
+      .st2 { fill: url(#linear-gradient9); }
+      .st3 { fill: url(#linear-gradient3); }
+      .st4 { fill: url(#linear-gradient6); }
+      .st5 { fill: url(#linear-gradient8); }
+      .st6 { fill: url(#linear-gradient7); }
+      .st7 { fill: url(#linear-gradient5); }
+      .st8 { fill: url(#linear-gradient4); }
+      .st9 { fill: url(#linear-gradient); }
+      .st10 { fill: #fff; }
+    </style>
+    <linearGradient id="linear-gradient" x1="362.85" y1="0" x2="362.85" y2="1201.04" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#abcf37"/>
+      <stop offset="1" stop-color="#5f7a1b"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient1" x1="1030" y1="128.91" x2="1030" y2="564.87" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#66564f"/>
+      <stop offset=".37" stop-color="#524640"/>
+      <stop offset="1" stop-color="#2b2d2d"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient2" x1="1352.15" y1="219.08" x2="1352.15" y2="565.53" xlink:href="#linear-gradient1"/>
+    <linearGradient id="linear-gradient3" x1="1679.55" y1="223.9" x2="1679.55" y2="688.75" xlink:href="#linear-gradient1"/>
+    <linearGradient id="linear-gradient4" x1="2010.91" x2="2010.91" y2="563.12" xlink:href="#linear-gradient1"/>
+    <linearGradient id="linear-gradient5" x1="2367.9" y1="219.08" x2="2367.9" y2="565.76" xlink:href="#linear-gradient1"/>
+    <linearGradient id="linear-gradient6" x1="2702.29" y1="218.66" x2="2702.29" y2="557.88" xlink:href="#linear-gradient1"/>
+    <linearGradient id="linear-gradient7" x1="3099.43" y1="128.91" x2="3099.43" y2="557.88" gradientUnits="userSpaceOnUse">
+      <stop offset=".12" stop-color="#3a3c3b"/>
+      <stop offset=".56" stop-color="#252323"/>
+      <stop offset="1" stop-color="#231f20"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient8" x1="3534.5" x2="3534.5" xlink:href="#linear-gradient7"/>
+    <linearGradient id="linear-gradient9" x1="3924.51" x2="3924.51" y2="557.42" xlink:href="#linear-gradient7"/>
+  </defs>
+  <g>
+    <path class="st9" d="M705.7,725.7H20c-11,0-20-9-20-20V20C0,9,9,0,20,0h685.7c11,0,20,9,20,20v685.7c0,11-9,20-20,20Z"/>
+    <g>
+      <path class="st10" d="M624,70.2H100.9c-17,0-30.7,13.7-30.7,30.7v450c0,19.4,16.7,34.5,35.9,32.3,56-6.2,157.2-31.6,157.2-105.3,0-44.8-.4-69.9-.2-103.9.1-17.7,14.4-31.9,32.1-31.9h134.2c18.3,0,33.1,14.8,33.1,33.1v129.2s0,151.2-132.2,151.2c0,0,325.1,11.5,325.1-160.7V101.6c0-17.3-14.1-31.4-31.4-31.4ZM462.6,245.8c0,9.9-8.1,18-18,18h-163.4c-9.9,0-18-8.1-18-18v-79.5c0-9.9,8.1-18,18-18h163.4c9.9,0,18,8.1,18,18v79.5Z"/>
+      <path class="st10" d="M367,207v-.3c3.4-1,5.7-3.4,5.7-6.4,0-2.7-1.2-4.8-2.7-6-2-1.2-4.3-2-9.5-2-4.6,0-8.1.3-10.6.8v27.5h6.3v-11.1h3c3.5,0,5.2,1.4,5.7,4.4.9,3.2,1.4,5.7,2.2,6.7h6.9c-.7-1-1.2-2.7-2-6.9-.8-3.7-2.3-5.7-5-6.7ZM359.5,205h-3v-7.9c.7-.1,1.8-.3,3.5-.3,4.1,0,5.9,1.7,5.9,4.2,0,2.8-2.9,4-6.4,4Z"/>
+      <path class="st10" d="M360.7,178.7c-15.7,0-28.3,11.9-28.3,27.5s12.4,27.8,28.3,27.8,28.1-12.2,28.1-27.8-12.2-27.4-28.1-27.5ZM360.8,228.1c-12.4,0-21.4-9.7-21.4-21.9h0c0-12.1,9-22,21.2-22s21.1,10,21.1,22.1-8.5,21.8-20.9,21.8Z"/>
+    </g>
+  </g>
+  <g>
+    <path class="st1" d="M1077.93,174.43v269.63c0,32.82-15.76,49.02-48.15,49.02-34.58,0-51.65-15.32-51.65-45.52v-51.65h-84.04v33.27c0,31.95,1.75,52.96,6.13,63.03,15.32,51.21,66.98,72.66,130.88,72.66s115.12-21.89,129.56-76.6c3.5-16.63,5.25-36.77,5.25-59.53V128.91h-43.77c-24.08,0-44.21,21.45-44.21,45.52Z"/>
+    <path class="st0" d="M1351.94,219.08c-77.04,0-120.81,30.64-130.88,92.36h84.05c4.37-15.76,21.01-23.64,50.77-22.76,34.58,0,52.53,9.63,54.28,28.45,0,18.39-18.39,28.89-54.28,33.27-84.48,8.32-142.7,29.77-144.45,109.87,0,73.53,55.59,110.74,135.69,104.61,90.17-6.57,145.76-47.27,145.76-139.63v-113.81c-2.19-62.16-48.58-92.36-140.94-92.36ZM1411.47,421.3c0,47.27-28.45,74.85-74.85,74.85-26.7,0-40.71-12.26-42.46-38.96,0-24.95,17.07-40.71,50.34-46.84,24.51-4.81,47.27-11.81,66.97-20.13v31.08Z"/>
+    <path class="st3" d="M1740.18,253.66l-58.22,201.79-66.09-231.55h-95.42l113.81,326.53c13.57,44.21-3.06,66.97-49.02,66.97h-.01s-23.64,0-23.64,0v68.72c2.62,2.19,14,2.63,35.45,2.63,69.6,0,89.74-18.82,109.87-73.97l131.75-390.88h-58.65c-21.45,0-34.58,10.06-39.83,29.76Z"/>
+    <path class="st8" d="M2124.93,128.91h-41.58v141.82c-21.45-34.58-53.84-51.65-95.42-51.65-88.85,3.07-133.06,63.48-133.06,174.65s51.65,167.64,155.39,169.39c104.17.44,156.7-49.46,156.7-149.7v-242.49h-.01c0-22.76-18.82-42.02-42.02-42.02ZM2012.01,491.78c-48.14,0-70.47-34.14-70.03-101.55h0c2.19-64.34,25.83-95.86,71.35-95.86s68.72,31.52,70.47,95.86c0,67.41-23.64,101.55-71.78,101.55Z"/>
+    <path class="st7" d="M2369.18,219.08c-101.55.88-152.76,57.35-152.76,171.15s50.34,172.46,151.45,175.52h0c82.29.01,127.81-39.39,145.76-109.86h-61.72c-11.38,0-21.01,3.5-28.45,11.82-16.2,15.75-34.58,24.07-54.28,24.07-40.7,0-63.03-25.83-66.09-77.04h215.79c6.13-130.88-43.77-195.66-149.7-195.66ZM2304.4,354.77h0c6.13-44.21,28.02-66.97,63.91-66.97s56.47,22.76,61.72,66.97h-125.62Z"/>
+    <path class="st4" d="M2703.16,218.66c-94.98,0-143.13,47.27-143.13,142.69v196.53h85.35v-213.17c.87-34.58,19.69-51.65,56.9-51.65s56.47,17.07,58.22,51.65v171.58c0,26.26,14,39.83,41.58,41.58h0s42.46,0,42.46,0v-196.53c.44-95.42-46.4-142.69-141.38-142.69Z"/>
+  </g>
+  <g>
+    <path class="st6" d="M3151.07,128.91h-72.02c-21.75,0-35.79,9.52-42.13,28.54l-145.86,400.43h95.58l28.99-87.42h168.96l28.99,87.42h94.22l-156.73-428.97h0ZM3159.22,397.53h-120.03l59.79-182.09,60.24,182.09Z"/>
+    <path class="st5" d="M3700.06,529.33l-4.08-83.8c-2.27-28.09-5.89-49.38-13.59-63.87-9.06-13.13-23.1-23.1-41.67-29.44,41.67-11.32,65.68-46.65,64.77-101.01,0-88.33-49.83-122.3-140.42-122.3h-165.33c-24.91,0-44.84,21.74-44.84,46.2v382.77h89.23v-166.24h95.12c52.55,0,62.06,16.3,65.23,67.94.91,41.67,2.27,66.13,4.08,72.47.91,8.61,2.72,17.67,7.25,25.82h98.29c-8.15-5.89-13.59-15.4-14.04-28.54ZM3549.68,316.44h-105.09v-112.79h110.52c39.41,0,60.7,16.76,60.7,56.17,0,41.67-23.55,56.62-66.13,56.62Z"/>
+    <path class="st2" d="M3796.09,128.91c-25.37,0-44.85,21.74-45.3,46.2v29.9h129.1v352.41h89.23V205.01h129.1v-76.1h-302.13Z"/>
+  </g>
+</svg>`;
+$("sample-logo").addEventListener("click", () => { recolor = {}; input.value = LOGO_SAMPLE; run(); });
+
+/* ---------- color editor ---------- */
+
+function clamp255(n) { return Math.max(0, Math.min(255, Math.round(n))); }
+function hexToRgb(hex) {
+  let h = hex.replace("#", "");
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const n = parseInt(h.slice(0, 6), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+function rgbToHex(r, g, b) { return "#" + [r, g, b].map((x) => clamp255(x).toString(16).padStart(2, "0")).join(""); }
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0; const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+function hslToRgb(h, s, l) {
+  h = (((h % 360) + 360) % 360) / 360; s = Math.max(0, Math.min(100, s)) / 100; l = Math.max(0, Math.min(100, l)) / 100;
+  if (s === 0) { const v = clamp255(l * 255); return { r: v, g: v, b: v }; }
+  const hue = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1 / 6) return p + (q - p) * 6 * t; if (t < 1 / 2) return q; if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6; return p; };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+  return { r: clamp255(hue(p, q, h + 1 / 3) * 255), g: clamp255(hue(p, q, h) * 255), b: clamp255(hue(p, q, h - 1 / 3) * 255) };
+}
+function rgbToCmyk(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const k = 1 - Math.max(r, g, b);
+  if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
+  return { c: Math.round((1 - r - k) / (1 - k) * 100), m: Math.round((1 - g - k) / (1 - k) * 100), y: Math.round((1 - b - k) / (1 - k) * 100), k: Math.round(k * 100) };
+}
+function cmykToRgb(c, m, y, k) {
+  c /= 100; m /= 100; y /= 100; k /= 100;
+  return { r: clamp255(255 * (1 - c) * (1 - k)), g: clamp255(255 * (1 - m) * (1 - k)), b: clamp255(255 * (1 - y) * (1 - k)) };
+}
+function shortHex(hex) {
+  const h = hex.toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(h) && h[1] === h[2] && h[3] === h[4] && h[5] === h[6]) return "#" + h[1] + h[3] + h[5];
+  return h;
+}
+// Resolve any CSS color (hex, rgb, hsl, or a name) to a 6-digit hex, or null if
+// it is not a literal color a swatch can show. Named colors resolve through the
+// canvas, checked against two sentinels so an invalid name is not read as black.
+function colorToHex(v) {
+  if (!v) return null;
+  const s = v.trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(s)) return s;
+  if (/^#[0-9a-f]{3}$/.test(s)) return "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
+  if (/^#[0-9a-f]{8}$/.test(s)) return s.slice(0, 7);
+  if (/^#[0-9a-f]{4}$/.test(s)) return "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
+  let m = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/.exec(s);
+  if (m) return rgbToHex(+m[1], +m[2], +m[3]);
+  m = /^hsla?\(\s*([\d.]+)(?:deg)?[\s,]+([\d.]+)%?[\s,]+([\d.]+)%?/.exec(s);
+  if (m) { const c = hslToRgb(+m[1], +m[2], +m[3]); return rgbToHex(c.r, c.g, c.b); }
+  try {
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.fillStyle = "#123456"; ctx.fillStyle = s; const a = ctx.fillStyle;
+    ctx.fillStyle = "#654321"; ctx.fillStyle = s; const b = ctx.fillStyle;
+    if (a === b) { if (a[0] === "#") return a; const mm = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(a); if (mm) return rgbToHex(+mm[1], +mm[2], +mm[3]); }
+  } catch { /* canvas unavailable */ }
+  return null;
+}
+function parseFormat(fmt, value) {
+  const v = value.trim();
+  if (fmt === "hex") return colorToHex(v.startsWith("#") ? v : "#" + v);
+  const nums = v.match(/-?\d*\.?\d+/g);
+  if (!nums) return null;
+  if (fmt === "rgb" && nums.length >= 3) return rgbToHex(+nums[0], +nums[1], +nums[2]);
+  if (fmt === "hsl" && nums.length >= 3) { const c = hslToRgb(+nums[0], +nums[1], +nums[2]); return rgbToHex(c.r, c.g, c.b); }
+  if (fmt === "cmyk" && nums.length >= 4) { const c = cmykToRgb(+nums[0], +nums[1], +nums[2], +nums[3]); return rgbToHex(c.r, c.g, c.b); }
+  return null;
+}
+const offsetPct = (offset) => {
+  const p = offset && offset.includes("%") ? parseFloat(offset) : parseFloat(offset) * 100;
+  return isFinite(p) ? Math.max(0, Math.min(100, Math.round(p))) : 0;
+};
+
+function buildColorEditor(paints) {
+  const colors = paints.colors.filter((c) => colorToHex(c.value));
+  const gradients = paints.gradients.filter((g) => g.stops.some((s) => colorToHex(s.color)));
+  if (colors.length === 0 && gradients.length === 0) { colorsSection.hidden = true; colorEditor.innerHTML = ""; return; }
+  colorsSection.hidden = false;
+
+  let html = `<div class="color-editor-head"><button type="button" class="color-reset" id="color-reset"${Object.keys(recolor).length ? "" : " disabled"}>Reset colors</button></div>`;
+
+  for (const c of colors) {
+    const cur = recolor[c.value] || colorToHex(c.value);
+    const rgb = hexToRgb(cur), hsl = rgbToHsl(rgb.r, rgb.g, rgb.b), cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+    const label = esc(c.value);
+    html += `<div class="color-row" data-key="${label}">
+      <input type="color" class="color-swatch" data-key="${label}" value="${cur}" aria-label="Color for ${label}">
+      <div class="color-name">${label}<small>${c.uses} part${c.uses > 1 ? "s" : ""}</small></div>
+      <div class="color-fields">
+        <label class="color-field hex">Hex<input type="text" data-fmt="hex" value="${shortHex(cur)}" spellcheck="false" aria-label="Hex for ${label}"></label>
+        <label class="color-field rgb">RGB<input type="text" data-fmt="rgb" value="${rgb.r}, ${rgb.g}, ${rgb.b}" spellcheck="false" aria-label="RGB for ${label}"></label>
+        <label class="color-field hsl">HSL<input type="text" data-fmt="hsl" value="${hsl.h}, ${hsl.s}%, ${hsl.l}%" spellcheck="false" aria-label="HSL for ${label}"></label>
+        <label class="color-field cmyk">CMYK<input type="text" data-fmt="cmyk" value="${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k}" spellcheck="false" aria-label="CMYK for ${label}"></label>
+      </div>
+    </div>`;
+  }
+
+  for (const g of gradients) {
+    const stopBits = g.stops.map((s) => {
+      const cur = recolor[`grad:${g.id}:${s.index}`] || colorToHex(s.color) || "#000000";
+      const pct = offsetPct(s.offset);
+      return { key: `grad:${g.id}:${s.index}`, cur, pct };
+    });
+    const bar = stopBits.map((b) => `${b.cur} ${b.pct}%`).join(", ");
+    const stopsHtml = stopBits.map((b) =>
+      `<label class="gradient-stop"><input type="color" class="color-swatch" data-key="${esc(b.key)}" value="${b.cur}" aria-label="Gradient stop at ${b.pct} percent">${b.pct}%</label>`).join("");
+    html += `<div class="color-row gradient" data-grad="${esc(g.id)}">
+      <div class="gradient-head"><span class="gradient-title">${g.type === "radial" ? "Radial" : "Linear"} gradient</span><div class="gradient-bar" style="background:linear-gradient(90deg, ${bar})"></div></div>
+      <div class="gradient-stops">${stopsHtml}</div>
+    </div>`;
+  }
+
+  colorEditor.innerHTML = html;
+}
+
+function rowForKey(key) { return [...colorEditor.querySelectorAll(".color-row")].find((r) => r.dataset.key === key); }
+function swatchForKey(key) { return [...colorEditor.querySelectorAll(".color-swatch")].find((s) => s.dataset.key === key); }
+
+function syncColorFields(key, hex, source) {
+  const rgb = hexToRgb(hex), hsl = rgbToHsl(rgb.r, rgb.g, rgb.b), cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+  const vals = { hex: shortHex(hex), rgb: `${rgb.r}, ${rgb.g}, ${rgb.b}`, hsl: `${hsl.h}, ${hsl.s}%, ${hsl.l}%`, cmyk: `${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k}` };
+  const row = rowForKey(key);
+  if (row) {
+    const sw = row.querySelector(".color-swatch");
+    if (sw && sw !== source) sw.value = hex;
+    row.querySelectorAll("[data-fmt]").forEach((f) => { if (f !== source) f.value = vals[f.dataset.fmt]; });
+    return;
+  }
+  const sw = swatchForKey(key); // gradient stop
+  if (sw) {
+    if (sw !== source) sw.value = hex;
+    const grad = sw.closest(".color-row.gradient");
+    if (grad) {
+      const bar = grad.querySelector(".gradient-bar");
+      const stops = [...grad.querySelectorAll(".gradient-stop")].map((st) => {
+        const s = st.querySelector(".color-swatch");
+        const pct = (st.textContent.match(/\d+/) || [0])[0];
+        return `${s.value} ${pct}%`;
+      });
+      if (bar) bar.style.background = `linear-gradient(90deg, ${stops.join(", ")})`;
+    }
+  }
+}
+
+function updateColor(key, hex, source) {
+  if (!key || !hex) return;
+  recolor[key] = shortHex(hex);
+  syncColorFields(key, hex, source);
+  const resetBtn = $("color-reset");
+  if (resetBtn) resetBtn.disabled = Object.keys(recolor).length === 0;
+  scheduleColorRender();
+}
+
+colorEditor.addEventListener("input", (e) => {
+  const el = e.target;
+  if (el.classList.contains("color-swatch")) updateColor(el.dataset.key, el.value, el);
+  else if (el.dataset && el.dataset.fmt) {
+    const key = el.closest(".color-row")?.dataset.key;
+    const hex = parseFormat(el.dataset.fmt, el.value);
+    if (key && hex) updateColor(key, hex, el);
+  }
+});
+colorEditor.addEventListener("click", (e) => {
+  if (e.target.id === "color-reset") {
+    recolor = {};
+    buildColorEditor(listPaints(base));
+    applyColorsAndRender();
+  }
+});
 
 // -------- shared shell behavior (theme, scene, dust, offline, footer) --------
 

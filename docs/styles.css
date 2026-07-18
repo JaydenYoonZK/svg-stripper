@@ -1410,6 +1410,8 @@ textarea.dropping { border-color: var(--accent); background: var(--accent-soft);
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--line);
+  cursor: ew-resize;
+  touch-action: none;
   /* A checkerboard so transparency reads as transparency. The tiles span a
      light and a mid grey, not two near-white greys, so white and near-white
      artwork stays visible against the darker tiles during the wipe. */
@@ -1420,20 +1422,61 @@ textarea.dropping { border-color: var(--accent); background: var(--accent-soft);
   background-size: 24px 24px;
   background-position: 0 0, 12px 12px;
 }
-.compare-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 18px; }
-.compare-clip { position: absolute; inset: 0; }
-#img-after { clip-path: inset(0 calc(100% - var(--wipe)) 0 0); }
-.compare-divider { position: absolute; top: 0; bottom: 0; left: var(--wipe); width: 2px; background: var(--accent); transform: translateX(-1px); pointer-events: none; }
-.compare-grip { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%; background: var(--accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); }
-.compare-grip::before { content: "\2039\203A"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-ink); font-size: 15px; font-weight: 800; }
-.compare-badge { position: absolute; top: 12px; padding: 4px 12px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; background: rgba(13, 12, 10, 0.74); color: #f3f0e9; }
-.badge-after { left: 12px; }
-.badge-before { right: 12px; }
-.wipe { width: 100%; margin-top: 14px; }
+.compare-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 18px; pointer-events: none; }
+/* The original sits on top, clipped from the divider leftward, so the left of
+   the stage shows Before and the right shows the stripped After underneath. */
+#img-before.compare-top { clip-path: inset(0 calc(100% - var(--wipe)) 0 0); }
+.compare-divider { position: absolute; top: 0; bottom: 0; left: var(--wipe); width: 2px; background: var(--accent); transform: translateX(-1px); cursor: ew-resize; touch-action: none; }
+.compare-divider:focus-visible { outline: none; }
+.compare-grip { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: var(--accent); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45); cursor: ew-resize; }
+.compare-grip::before { content: "\2039\203A"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-ink); font-size: 16px; font-weight: 800; }
+.compare-divider:focus-visible .compare-grip { outline: 3px solid #fff; outline-offset: 2px; }
+.compare-badge { position: absolute; top: 12px; padding: 4px 12px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; background: rgba(13, 12, 10, 0.74); color: #f3f0e9; pointer-events: none; }
+.badge-before { left: 12px; }
+.badge-after { right: 12px; }
 .compare-note { margin: 10px 0 0; color: var(--red); font-size: 0.85rem; min-height: 1em; }
 
 @media (max-width: 640px) {
   .compare-stage { height: 240px; }
   input[type="range"] { width: 100px; }
-  .wipe { width: 100%; }
 }
+
+/* ---- Color editor ---- */
+.color-editor { display: grid; gap: 12px; margin-top: 8px; }
+.color-editor-head { display: flex; justify-content: flex-end; }
+.color-reset {
+  font-size: 0.82rem; font-weight: 700; padding: 7px 14px; border-radius: 999px;
+  border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--ink); cursor: pointer;
+}
+.color-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+  padding: 12px 14px; background: var(--bg-raise); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.color-swatch {
+  -webkit-appearance: none; appearance: none; width: 44px; height: 44px; padding: 0;
+  border: 1px solid var(--line-strong); border-radius: 10px; cursor: pointer; background: none; flex: none;
+}
+.color-swatch::-webkit-color-swatch-wrapper { padding: 0; }
+.color-swatch::-webkit-color-swatch { border: none; border-radius: 9px; }
+.color-swatch::-moz-color-swatch { border: none; border-radius: 9px; }
+.color-swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.color-name { font-size: 0.84rem; color: var(--ink-soft); font-weight: 600; min-width: 5.5ch; }
+.color-name small { display: block; color: var(--ink-mute); font-weight: 400; font-size: 0.76rem; }
+.color-fields { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-left: auto; }
+.color-field { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-mute); font-weight: 700; }
+.color-field input {
+  padding: 6px 8px; background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 8px; color: var(--ink); font-family: var(--mono); font-size: 0.82rem; text-transform: none; letter-spacing: 0;
+}
+.color-field input:focus { outline: none; border-color: rgba(171, 207, 55, 0.5); }
+.color-field.hex input { width: 9ch; }
+.color-field.rgb input, .color-field.hsl input { width: 13ch; }
+.color-field.cmyk input { width: 15ch; }
+
+.color-row.gradient { flex-direction: column; align-items: stretch; }
+.gradient-head { display: flex; align-items: center; gap: 12px; }
+.gradient-title { font-size: 0.84rem; color: var(--ink-soft); font-weight: 600; }
+.gradient-bar { flex: 1; height: 18px; border-radius: 9px; border: 1px solid var(--line-strong); min-width: 120px; }
+.gradient-stops { display: flex; flex-wrap: wrap; gap: 12px; }
+.gradient-stop { display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--ink-mute); font-weight: 600; }
+.gradient-stop .color-swatch { width: 34px; height: 34px; }

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { optimize, byteLength } from "../docs/optimizer.js";
+import { optimize, byteLength, listPaints, applyRecolor } from "../docs/optimizer.js";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const corpus = JSON.parse(readFileSync(join(root, "test/fixtures/corpus.json"), "utf8"));
@@ -213,6 +213,41 @@ test("a nonzero dimension never rounds down to zero", () => {
   const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle r="0.004" cx="50" cy="50"/><line stroke-width="0.004" x1="0" y1="0" x2="10" y2="10"/></svg>`, { precision: 2 });
   assert.doesNotMatch(r.svg, /\br="0"/, "a nonzero radius must not become 0");
   assert.doesNotMatch(r.svg, /stroke-width="0"/, "a nonzero stroke-width must not become 0");
+});
+
+/* ---- color editing ---- */
+
+test("listPaints enumerates distinct solid colors and gradient stops", () => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient id="g"><stop offset="0" stop-color="#66564f"/><stop offset="1" stop-color="#2b2d2d"/></linearGradient></defs><rect fill="#fff" width="10" height="10"/><circle fill="#fff" cx="5" cy="5" r="2"/><path fill="url(#g)" d="M0 0h4v4H0z"/></svg>`;
+  const paints = listPaints(svg);
+  const white = paints.colors.find((c) => c.value === "#fff");
+  assert.ok(white, "the white fill should be listed");
+  assert.equal(white.uses, 2, "both white parts count toward one swatch");
+  assert.ok(!paints.colors.some((c) => c.value.startsWith("url(")), "a gradient fill is not a solid color");
+  assert.equal(paints.gradients.length, 1);
+  assert.equal(paints.gradients[0].stops.length, 2);
+  assert.equal(paints.gradients[0].stops[0].color, "#66564f");
+});
+
+test("applyRecolor recolors a solid color and a gradient stop without breaking references", () => {
+  const svg = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient id="g"><stop offset="0" stop-color="#000"/></linearGradient></defs><rect fill="#fff" width="10" height="10"/><path fill="url(#g)" d="M0 0h4v4H0z"/></svg>`).svg;
+  const out = applyRecolor(svg, { "#fff": "#f00", "grad:g:0": "#00f" });
+  assert.match(out, /fill="#f00"/, "the solid color changed");
+  assert.match(out, /stop-color="#00f"/, "the gradient stop changed");
+  assert.match(out, /fill="url\(#g\)"/, "the gradient reference is intact");
+  assert.match(out, /id="g"/, "the gradient id survives");
+});
+
+test("a style fill shadows the attribute fill in the color list", () => {
+  const paints = listPaints(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect fill="#f00" style="fill:#00f" width="10" height="10"/></svg>`);
+  const vals = paints.colors.map((c) => c.value);
+  assert.ok(vals.includes("#00f"), "the winning inline-style color is listed");
+  assert.ok(!vals.includes("#f00"), "the shadowed attribute color is not listed");
+});
+
+test("applyRecolor with no changes returns the input untouched", () => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect fill="#fff" width="10" height="10"/></svg>`;
+  assert.equal(applyRecolor(svg, {}), svg);
 });
 
 test("byteLength counts UTF-8 bytes, not code units", () => {

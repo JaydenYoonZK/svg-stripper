@@ -720,3 +720,97 @@ export function byteLength(str) {
   if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(str).length;
   return Buffer.byteLength(str, "utf8");
 }
+
+/* ---------- color editing ----------
+   These power the in-browser recolor panel. listPaints enumerates the editable
+   paints; applyRecolor writes a chosen-color map back into the SVG. The key for
+   a solid color is the color string itself (so every part painted that color
+   moves together); the key for a gradient stop is `grad:<id>:<stopIndex>`. */
+
+const NOT_A_COLOR = /^(url\(|none$|inherit$|currentcolor$|transparent$|context-)/i;
+const styleProp = (style, prop) => {
+  const m = new RegExp("(?:^|;)\\s*" + prop + "\\s*:\\s*([^;]+)", "i").exec(style || "");
+  return m ? m[1].trim() : null;
+};
+const setStyleProp = (style, prop, val) => {
+  const re = new RegExp("((?:^|;)\\s*" + prop + "\\s*:\\s*)([^;]+)", "i");
+  return re.test(style) ? style.replace(re, "$1" + val) : style;
+};
+const gradientStops = (node) => (node.children || []).filter((c) => c.type === "element" && c.name.toLowerCase() === "stop");
+const stopColor = (stop) => {
+  const attr = stop.attrs.find((a) => a.name === "stop-color");
+  if (attr && attr.value != null) return attr.value.trim();
+  return styleProp(stop.attrs.find((a) => a.name === "style")?.value, "stop-color");
+};
+
+export function listPaints(svg) {
+  const { root } = parse(svg);
+  const colorCounts = new Map();
+  const gradients = [];
+  const add = (v) => { if (v != null && !NOT_A_COLOR.test(v.trim())) { const k = v.trim(); colorCounts.set(k, (colorCounts.get(k) || 0) + 1); } };
+  walk(root, (node) => {
+    if (node.type !== "element") return;
+    const lname = node.name.toLowerCase();
+    if (lname === "lineargradient" || lname === "radialgradient") {
+      const id = node.attrs.find((a) => a.name === "id")?.value;
+      if (!id) return;
+      const stops = gradientStops(node).map((s, index) => ({ index, offset: (s.attrs.find((a) => a.name === "offset")?.value ?? "0"), color: stopColor(s) }))
+        .filter((s) => s.color);
+      if (stops.length) gradients.push({ id, type: lname === "radialgradient" ? "radial" : "linear", stops });
+      return;
+    }
+    if (lname === "stop") return; // counted with its gradient
+    // An inline style outranks a presentation attribute, so when both set a
+    // channel, the style value is the one that paints and the attribute is
+    // shadowed. List only the effective one.
+    const style = node.attrs.find((a) => a.name === "style")?.value;
+    const styleFill = styleProp(style, "fill"), styleStroke = styleProp(style, "stroke");
+    for (const a of node.attrs) {
+      if (a.name === "fill" && styleFill == null) add(a.value);
+      if (a.name === "stroke" && styleStroke == null) add(a.value);
+    }
+    if (styleFill != null) add(styleFill);
+    if (styleStroke != null) add(styleStroke);
+  });
+  return {
+    colors: [...colorCounts.entries()].map(([value, uses]) => ({ value, uses })),
+    gradients,
+  };
+}
+
+export function applyRecolor(svg, recolor, opts = {}) {
+  if (!recolor || Object.keys(recolor).length === 0) return svg;
+  const merged = { ...DEFAULTS, ...opts };
+  const { root } = parse(svg);
+  walk(root, (node) => {
+    if (node.type !== "element") return;
+    const lname = node.name.toLowerCase();
+    if (lname === "lineargradient" || lname === "radialgradient") {
+      const id = node.attrs.find((a) => a.name === "id")?.value;
+      if (!id) return;
+      gradientStops(node).forEach((stop, index) => {
+        const next = recolor[`grad:${id}:${index}`];
+        if (next == null) return;
+        const attr = stop.attrs.find((a) => a.name === "stop-color");
+        if (attr) { attr.value = next; return; }
+        const style = stop.attrs.find((a) => a.name === "style");
+        if (style && /stop-color/i.test(style.value)) style.value = setStyleProp(style.value, "stop-color", next);
+        else stop.attrs.push({ name: "stop-color", value: next, quote: '"' });
+      });
+      return;
+    }
+    if (lname === "stop") return;
+    for (const a of node.attrs) {
+      if ((a.name === "fill" || a.name === "stroke") && a.value != null && recolor[a.value.trim()] != null) {
+        a.value = recolor[a.value.trim()];
+      }
+      if (a.name === "style") {
+        for (const prop of ["fill", "stroke"]) {
+          const cur = styleProp(a.value, prop);
+          if (cur != null && recolor[cur] != null) a.value = setStyleProp(a.value, prop, recolor[cur]);
+        }
+      }
+    }
+  });
+  return serialize(root, merged).trim() + (merged.prettify ? "\n" : "");
+}
