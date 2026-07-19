@@ -1,5 +1,5 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.1.1";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.1.2";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
@@ -98,15 +98,23 @@ const previewBg = document.querySelector(".preview-bg");
 if (previewBg) {
   const setBg = (mode, active) => {
     previewBg.querySelectorAll(".bg-opt").forEach((b) => {
-      b.classList.toggle("is-active", b === active);
-      if (b.hasAttribute("aria-pressed")) b.setAttribute("aria-pressed", String(b === active));
+      const on = b === active;
+      b.classList.toggle("is-active", on);
+      if (b.hasAttribute("aria-pressed")) b.setAttribute("aria-pressed", String(on));
+      if (b.tagName === "BUTTON") b.setAttribute("aria-disabled", String(on));
     });
     if (mode === "checker") compareStage.classList.remove("solid");
     else { compareStage.style.setProperty("--preview-bg", mode); compareStage.classList.add("solid"); }
   };
-  previewBg.querySelectorAll("button.bg-opt").forEach((btn) => btn.addEventListener("click", () => setBg(btn.dataset.bg, btn)));
+  previewBg.querySelectorAll("button.bg-opt").forEach((btn) => btn.addEventListener("click", () => {
+    if (btn.classList.contains("is-active")) return; // already the current background
+    setBg(btn.dataset.bg, btn);
+  }));
   const bgCustom = $("bg-custom");
   if (bgCustom) bgCustom.addEventListener("input", () => setBg(bgCustom.value, bgCustom.closest(".bg-opt")));
+  // Sync the initial locked state (aria-disabled) for whichever chip starts active.
+  const initialBg = previewBg.querySelector("button.bg-opt.is-active");
+  if (initialBg) setBg(initialBg.dataset.bg, initialBg);
 }
 
 let renderToken = 0;

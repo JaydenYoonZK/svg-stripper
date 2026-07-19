@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.2] - 2026-07-19
+
+### Changed
+
+- The selected preview background is locked: it takes a pressed, dashed, not-allowed state and cannot be clicked again, while the other options stay live.
+
 ## [1.1.1] - 2026-07-19
 
 ### Added

@@ -1485,6 +1485,17 @@ textarea.dropping { border-color: var(--accent); background: var(--accent-soft);
   display: inline-flex; align-items: center; gap: 7px;
 }
 .bg-opt.is-active { border-color: var(--accent); color: var(--ink); background: var(--accent-soft); }
+/* The selected preset is locked, echoing a disabled Clear button: a dashed
+   accent keyline, a pressed-in look, and a not-allowed cursor, so it reads as
+   the current choice and cannot be clicked again. Presets only; the Custom chip
+   stays live so its color can still be changed. */
+button.bg-opt.is-active,
+button.bg-opt.is-active:hover {
+  cursor: not-allowed;
+  border-style: dashed;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.22);
+  transform: none;
+}
 .bg-opt.bg-custom input[type="color"] { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; padding: 0; border: 1px solid var(--line-strong); border-radius: 6px; overflow: hidden; background: none; cursor: pointer; }
 .bg-opt.bg-custom input[type="color"]::-webkit-color-swatch { border: none; border-radius: 5px; }
 .compare-stage.solid { background-image: none; background-color: var(--preview-bg, #fff); }
