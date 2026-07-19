@@ -3,6 +3,23 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.0] - 2026-07-19
+
+### Added
+
+- The engine re-encodes path data into its shortest exact spelling: each segment picks absolute or relative form, flat lines become H and V, mirrored curves become S and T, and repeated commands share one letter. Same drawing, meaningfully fewer bytes.
+- Identity transforms are dropped, and a matrix that is really a translation or a scale is rewritten to the shorter named form.
+- Style attributes fold into presentation attributes once no stylesheet remains, xlink:href becomes the modern href, and a bare defs holding only gradients and friends unwraps.
+- The Try a sample file is now a faithful Illustrator legacy export, metadata block and all, so the before and after shows what a real export sheds: about 62 percent.
+
+### Fixed
+
+- A stray number after z in path data froze the page; it now truncates the way a renderer does.
+- Parsing is linear in file size; a few-hundred-KB file used to exhaust memory and now optimizes in milliseconds.
+- An arc radius could round down to zero, silently flattening the arc into a straight line.
+- Malformed numbers like 1e309 or a bare exponent corrupted the output; they now truncate cleanly.
+- Hostile inputs (thousand-deep nesting, enormous attributes) can no longer hang or crash the optimizer.
+
 ## [1.1.9] - 2026-07-19
 
 ### Changed

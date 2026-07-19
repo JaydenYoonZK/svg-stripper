@@ -75,9 +75,11 @@ cannot run code or phone home through it.
 
 This is a focused tool, not a reimplementation of [SVGO](https://github.com/svg/svgo).
 It handles the common job of cleaning up a design-tool export and shows you the
-result. It does not reshape path geometry or merge shapes the way SVGO's
-heaviest passes can, on purpose, because those are the passes most likely to
-change something you did not expect.
+result. Path data is re-encoded to its shortest exact spelling (absolute or
+relative per segment, `H`/`V` for axis lines, `S`/`T` for mirrored curves), but
+it does not reshape geometry or merge shapes the way SVGO's heaviest passes
+can, on purpose, because those are the passes most likely to change something
+you did not expect.
 
 ## Develop
 

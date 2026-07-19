@@ -69,12 +69,258 @@ test("text content and its whitespace are preserved byte for byte", () => {
 
 /* ---- targeted unit tests ---- */
 
+// A minimal reference parser for path data, used to check that whatever bytes
+// the optimizer emits still mean the same drawing commands. Arc flags are
+// single characters per the grammar, never part of a number.
+function parsePathSegs(d) {
+  const ARGS = { m: 2, l: 2, h: 1, v: 1, c: 6, s: 4, q: 4, t: 2, a: 7, z: 0 };
+  const segs = [];
+  let i = 0, cmd = null;
+  const ws = () => { while (i < d.length && /[\s,]/.test(d[i])) i++; };
+  const num = () => {
+    ws(); const m = /^[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?/.exec(d.slice(i));
+    if (!m) return null; i += m[0].length; return parseFloat(m[0]);
+  };
+  const flag = () => { ws(); if (d[i] === "0" || d[i] === "1") return Number(d[i++]); return null; };
+  while (i < d.length) {
+    ws(); if (i >= d.length) break;
+    if (/[a-zA-Z]/.test(d[i])) cmd = d[i++];
+    const lower = cmd.toLowerCase();
+    if (lower === "z") { segs.push({ cmd, args: [] }); continue; }
+    const args = [];
+    for (let k = 0; k < ARGS[lower]; k++) {
+      const v = lower === "a" && (k === 3 || k === 4) ? flag() : num();
+      if (v == null) return segs;
+      args.push(v);
+    }
+    segs.push({ cmd, args });
+    if (lower === "m") cmd = cmd === "M" ? "L" : "l";
+  }
+  return segs;
+}
+
 test("arc flags are never merged into coordinates", () => {
   // "a5 5 0 015 5" packs large-arc-flag 0 and sweep-flag 1 with no separators.
   const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M2 2a5 5 0 015 5"/></svg>`);
   const d = /d="([^"]+)"/.exec(r.svg)[1];
-  // flags must remain two single digits, followed by the end point 5 5
-  assert.match(d, /a5 5 0 0 1 5 5/);
+  const arc = parsePathSegs(d).find((s) => s.cmd.toLowerCase() === "a");
+  assert.ok(arc, "the arc segment must survive");
+  assert.deepEqual(arc.args, [5, 5, 0, 0, 1, 5, 5], "radii, rotation, both flags, and the end point are unchanged");
+});
+
+/* ---- the shortest-encoding path emitter ---- */
+
+// End point of every segment, resolved to absolute coordinates: the ground
+// truth a renderer traces. Two path strings that produce the same list draw
+// the same outline (curve controls are asserted separately).
+function tracePoints(d) {
+  const pts = [];
+  let cx = 0, cy = 0, sx = 0, sy = 0;
+  for (const { cmd, args } of parsePathSegs(d)) {
+    const rel = cmd === cmd.toLowerCase();
+    const lower = cmd.toLowerCase();
+    if (lower === "z") { cx = sx; cy = sy; pts.push([cx, cy]); continue; }
+    let x = cx, y = cy;
+    if (lower === "h") x = rel ? cx + args[0] : args[0];
+    else if (lower === "v") y = rel ? cy + args[0] : args[0];
+    else { const k = args.length; x = rel ? cx + args[k - 2] : args[k - 2]; y = rel ? cy + args[k - 1] : args[k - 1]; }
+    if (lower === "m") { sx = x; sy = y; }
+    cx = x; cy = y;
+    pts.push([cx, cy]);
+  }
+  return pts;
+}
+
+test("path re-encoding never moves an end point", () => {
+  const src = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><path d="M64 8 L96 24 L96 64 C96 90 82 112 64 118 C46 112 32 90 32 64 L32 24 Z M50 60 L60 70 L80 44"/></svg>`;
+  const r = optimize(src);
+  const d = /d="([^"]+)"/.exec(r.svg)[1];
+  assert.deepEqual(tracePoints(d), tracePoints(/d="([^"]+)"/.exec(src)[1]));
+});
+
+test("axis-aligned lines become H and V, and curves become S when they reflect", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M10 10 L90 10 L90 90 C90 95 85 100 80 100 C75 100 70 95 70 90"/></svg>`);
+  const d = /d="([^"]+)"/.exec(r.svg)[1];
+  assert.match(d, /[hH]/, "the horizontal line should use H or h");
+  assert.match(d, /[vV]/, "the vertical line should use V or v");
+  assert.match(d, /[sS]/, "the reflecting cubic should use S or s");
+  assert.doesNotMatch(d, /[hH][^\d-.]*[\d.-]+[^hHvV]*[vV]?.*C.*C/, "both cubics should not stay as C");
+});
+
+test("relative coordinates re-accumulate to the exact absolute positions", () => {
+  // A long chain where every segment is shorter written relative. The traced
+  // points must equal the absolute originals exactly at the kept precision.
+  const src = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><path d="M100.25 100.25 L110.5 110.5 L120.75 120.75 L131 131 L141.25 141.25"/></svg>`;
+  const r = optimize(src);
+  const d = /d="([^"]+)"/.exec(r.svg)[1];
+  const got = tracePoints(d).map(([x, y]) => [Math.round(x * 100) / 100, Math.round(y * 100) / 100]);
+  assert.deepEqual(got, tracePoints(/d="([^"]+)"/.exec(src)[1]));
+});
+
+test("a tiny arc radius never rounds away to zero", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M10 50a0.004 0.004 0 0 1 20 0"/></svg>`, { precision: 2 });
+  const d = /d="([^"]+)"/.exec(r.svg)[1];
+  const arc = parsePathSegs(d).find((s) => s.cmd.toLowerCase() === "a");
+  assert.ok(arc.args[0] > 0 && arc.args[1] > 0, "radii must stay nonzero so the arc stays an arc");
+});
+
+/* ---- the new byte-shaving passes ---- */
+
+test("style declarations move to attributes when no stylesheet remains", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect style="fill:#FFFFFF;stroke-width:3" width="10" height="10"/></svg>`);
+  assert.doesNotMatch(r.svg, /style=/, "the style attribute should be gone");
+  assert.match(r.svg, /fill="#fff"/, "the moved fill is then shortened too");
+  assert.match(r.svg, /stroke-width="3"/);
+});
+
+test("style declarations stay put while a stylesheet survives", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><style>@media(min-width:1px){.a{fill:#000}}</style><rect class="a" style="stroke:#ff0000" width="10" height="10"/></svg>`);
+  assert.match(r.svg, /style="stroke:#f00"/, "with CSS in play the declaration must keep its priority");
+});
+
+test("a style declaration the attribute form cannot express is kept", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect style="fill:#000;transform:translate(1px)" width="10" height="10"/></svg>`);
+  assert.match(r.svg, /fill="#000"/, "the expressible part moves");
+  assert.match(r.svg, /style="transform:translate\(1px\)"/, "the CSS-only part stays inline");
+});
+
+test("identity transforms are dropped and a translation matrix is rewritten", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g transform="translate(0,0)"><rect width="10" height="10"/></g><rect transform="matrix(1,0,0,1,3,4)" width="1" height="1"/><rect transform="rotate(45)" width="1" height="1"/></svg>`);
+  assert.doesNotMatch(r.svg, /translate\(0/, "an identity translate is noise");
+  assert.match(r.svg, /transform="translate\(3 4\)"/, "a pure translation matrix reads shorter as translate");
+  assert.match(r.svg, /rotate\(45\)/, "a real rotation is untouched");
+  assert.doesNotMatch(r.svg, /<g/, "the group that held only the identity transform unwraps");
+});
+
+test("xlink:href becomes href and the xlink namespace goes with it", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 10 10"><defs><linearGradient id="g"><stop offset="0" stop-color="#000"/></linearGradient></defs><rect fill="url(#g)" width="10" height="10"/><use xlink:href="#g"/></svg>`);
+  assert.match(r.svg, /<use href="#g"/, "the modern spelling is shorter");
+  assert.doesNotMatch(r.svg, /xmlns:xlink/, "the namespace declaration is then dead weight");
+});
+
+test("a bare defs around only definitions unwraps, one with a shape does not", () => {
+  const defsOnly = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient id="g"><stop offset="0" stop-color="#000"/></linearGradient></defs><rect fill="url(#g)" width="10" height="10"/></svg>`);
+  assert.doesNotMatch(defsOnly.svg, /<defs/, "a gradient renders by reference from anywhere");
+  assert.match(defsOnly.svg, /<linearGradient id="g"/, "the gradient itself must survive");
+  const withShape = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><rect id="r" width="5" height="5"/></defs><use href="#r"/></svg>`);
+  assert.match(withShape.svg, /<defs/, "a shape inside defs must stay hidden inside defs");
+});
+
+test("a number after z does not hang the parser", () => {
+  // "z0" is a path grammar error. The old tokenizer spun forever on it,
+  // which froze the page on a paste. It must now truncate like a renderer.
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0h5v5z0 0h9"/></svg>`);
+  assert.ok(r.ok);
+  const d = /d="([^"]+)"/.exec(r.svg)[1];
+  assert.match(d, /z$/i, "everything after the stray number is dropped");
+  assert.equal(optimize(r.svg).svg, r.svg);
+});
+
+test("non-finite and absurd coordinates truncate the path instead of corrupting it", () => {
+  for (const bad of ["M0 0L1e309 5", "M0 0L5 e59", "M0 0L9e31 1", "M0 0L5e 5"]) {
+    const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="${bad}h3"/></svg>`);
+    assert.ok(r.ok, bad);
+    const d = /d="([^"]*)"/.exec(r.svg)[1];
+    assert.doesNotMatch(d, /[iI]nfinity|NaN|e\+/, `${bad} must not leak a non-numeric token`);
+    assert.equal(optimize(r.svg).svg, r.svg, `${bad} must stay idempotent`);
+  }
+});
+
+test("a large many-path document optimizes in linear time", () => {
+  let big = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048">`;
+  for (let k = 0; k < 1000; k++) big += `<path fill="#abc" d="M${k} ${k}l10.123456 5.654321L${k + 30} ${k + 8}Z"/>`;
+  big += "</svg>";
+  const t0 = performance.now();
+  const r = optimize(big);
+  const took = performance.now() - t0;
+  assert.ok(r.ok);
+  assert.ok(took < 2000, `took ${took.toFixed(0)}ms; the parser must stay linear`);
+});
+
+test("points and viewBox keep separators every SVG engine accepts", () => {
+  // The glued "90-30" spelling is only grammatical inside path data. Gecko
+  // rejects it in attribute number lists, discarding the whole attribute.
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="10, 10 50, 90 -30, 40"/></svg>`);
+  const pts = /points="([^"]+)"/.exec(r.svg)[1];
+  assert.ok(/[\s,]/.test(pts.slice(1)), "numbers stay separated");
+  assert.doesNotMatch(pts, /\d-/, "no negative number glued to the one before it");
+  const vb = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 -0.5 1 1"><rect width="1" height="1"/></svg>`);
+  const vbv = /viewBox="([^"]+)"/.exec(vb.svg)[1];
+  assert.equal((vbv.match(/[\s,]+/g) || []).length, 3, "viewBox keeps all three separators");
+});
+
+/* ---- regression tests from the adversarial engine review ---- */
+
+test("huge finite coordinates pass through untouched instead of being deleted", () => {
+  // Browsers render 1e13; deleting it would erase a visible stroke.
+  const src = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path stroke="red" fill="none" d="M0 50 L1e13 50 L50 50"/></svg>`;
+  const r = optimize(src);
+  const d = /d="([^"]+)"/.exec(r.svg)[1];
+  assert.deepEqual(tracePoints(d), [[0, 50], [1e13, 50], [50, 50]], "every end point survives exactly");
+  assert.equal(optimize(r.svg).svg, r.svg, "re-optimizing changes nothing");
+  // and one past the exact range: the whole d passes through byte-for-byte
+  const far = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0 50 L9e15 50 L50 50"/></svg>`;
+  const rf = optimize(far);
+  assert.match(rf.svg, /d="M0 50 L9e15 50 L50 50"/, "beyond the exact range the input is handed back untouched");
+});
+
+test("garbage in path data truncates the way a renderer truncates", () => {
+  // an unknown command letter: nothing after it may render
+  const unknown = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M0 0 X9 9 L50 50"/></svg>`);
+  assert.doesNotMatch(/d="([^"]*)"/.exec(unknown.svg)[1], /50/, "segments after an unknown command are gone");
+  // junk before the first command: the whole path is in error
+  const junkFirst = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="5 M0 0 L50 50"/></svg>`);
+  assert.equal(/d="([^"]*)"/.exec(junkFirst.svg)[1], "", "a path that does not begin with a command renders nothing");
+});
+
+test("style attributes inside foreignObject are left alone", () => {
+  const src = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><foreignObject width="100" height="100"><div xmlns="http://www.w3.org/1999/xhtml" style="display:none;fill:red">hidden</div></foreignObject></svg>`;
+  const r = optimize(src);
+  assert.match(r.svg, /style="display:none;fill:red"/, "HTML style declarations are not this engine's to move");
+});
+
+test("CSS comments in a stylesheet do not become attribute names", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><style>.a{/* brand */fill:#123456}</style><rect class="a" width="10" height="10"/></svg>`);
+  assert.match(r.svg, /fill="#123456"/, "the declaration survives the comment");
+  assert.doesNotMatch(r.svg, /\/\*|\*\//, "no comment fragment leaks into the markup");
+});
+
+test("a print-only stylesheet is never inlined into screen rendering", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><style media="print">.a{fill:#000}</style><rect class="a" fill="#f00" width="10" height="10"/></svg>`);
+  assert.match(r.svg, /<style media="print"/, "the media-scoped sheet must survive");
+  assert.match(r.svg, /fill="#f00"/, "the screen rendering keeps the attribute value");
+});
+
+test("a prefixed svg:style stylesheet still counts as a stylesheet", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><svg:style>@media(min-width:1px){.a{fill:#000}}</svg:style><rect class="a" style="stroke:#ff0000" width="10" height="10"/></svg>`);
+  assert.match(r.svg, /style="stroke:#f00"/, "declarations keep their cascade priority while any sheet lives");
+});
+
+test("a duplicated declaration stays inline to preserve last-valid-wins", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect style="fill:#f00;fill:hsl(bogus)" width="10" height="10"/></svg>`);
+  assert.match(r.svg, /style="fill:#f00;fill:hsl\(bogus\)"/, "the engine cannot judge validity, so it must not choose");
+});
+
+test("an explicit default under an ancestor's style declaration is kept", () => {
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g style="stroke-width:3 !important"><rect stroke-width="1" stroke="#000" width="10" height="10"/></g></svg>`);
+  assert.match(r.svg, /stroke-width="1"/, "dropping it would let the ancestor's 3 inherit through");
+});
+
+test("deep nesting degrades gracefully instead of overflowing the stack", () => {
+  const deep = "<g>".repeat(5000) + '<rect width="1" height="1"/>' + "</g>".repeat(5000);
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">${deep}</svg>`);
+  assert.ok(r.ok, "a 5000-deep nest must not throw");
+  assert.match(r.svg, /<rect/, "the shape survives");
+});
+
+test("hostile long transform and style attributes stay linear-time", () => {
+  const hostileTransform = "a".repeat(200000);
+  const hostileStyle = "url(".repeat(20000);
+  const t0 = performance.now();
+  const r = optimize(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><g transform="${hostileTransform}"><rect style="${hostileStyle}" width="10" height="10"/></g></svg>`);
+  const took = performance.now() - t0;
+  assert.ok(r.ok);
+  assert.ok(took < 2000, `took ${took.toFixed(0)}ms; hostile attributes must not go quadratic`);
 });
 
 test("coordinate precision is reduced to the requested places", () => {
