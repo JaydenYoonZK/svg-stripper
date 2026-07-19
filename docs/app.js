@@ -1,5 +1,5 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.1.3";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.1.4";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
@@ -638,6 +638,14 @@ if (siteNav) {
 const navAnchors = [...document.querySelectorAll(".nav-links a")];
 const navSections = navAnchors.map((a) => document.getElementById(a.hash.slice(1))).filter(Boolean);
 navSections.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+// Short trailing sections pile into the final screen, where the page can no
+// longer scroll each heading up to the line, so position alone cannot tell them
+// apart at the bottom. Remember the clicked link and honor it while parked at
+// the bottom; a real scroll (wheel or touch) clears it and the line takes over.
+let clickedHash = null;
+for (const a of navAnchors) if (a.hash) a.addEventListener("click", () => { clickedHash = a.hash; });
+addEventListener("wheel", () => { clickedHash = null; }, { passive: true });
+addEventListener("touchmove", () => { clickedHash = null; }, { passive: true });
 function syncActiveLink() {
   const line = (siteNav ? siteNav.offsetHeight : 0) + 40;
   let current = null;
@@ -645,9 +653,10 @@ function syncActiveLink() {
     if (sec.getBoundingClientRect().top <= line) current = sec;
   }
   // At the very bottom the last section is current even when the page is too
-  // short to lift its heading up to the line.
+  // short to lift its heading up to the line, unless the reader clicked one of
+  // the piled-up trailing links, in which case honor that.
   if (navSections.length && Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight - 2) {
-    current = navSections[navSections.length - 1];
+    current = (clickedHash && navSections.find((s) => "#" + s.id === clickedHash)) || navSections[navSections.length - 1];
   }
   for (const a of navAnchors) {
     const on = !!current && a.hash === "#" + current.id;
