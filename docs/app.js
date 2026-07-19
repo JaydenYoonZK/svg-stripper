@@ -1,5 +1,5 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.4.2";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.4.3";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
