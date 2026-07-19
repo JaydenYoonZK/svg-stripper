@@ -37,14 +37,14 @@
       document.head.appendChild(m);
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=1.1.7">
+  <link rel="stylesheet" href="styles.css?v=1.1.8">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "SVG Stripper",
     "applicationCategory": "DeveloperApplication",
-    "softwareVersion": "1.1.7",
+    "softwareVersion": "1.1.8",
     "operatingSystem": "Any (browser-based)",
     "url": "https://jaydenyoonzk.github.io/svg-stripper/",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -247,13 +247,15 @@
       <div class="color-editor" id="color-editor"></div>
     </div>
 
-    <h2 class="section-title">✨ Stripped SVG</h2>
-    <div class="output">
+    <div class="output-head">
+      <h2 class="section-title">✨ Stripped SVG</h2>
       <div class="copy-wrap">
         <button id="copy" disabled class="primary" type="button" aria-label="Copy the stripped SVG" data-tip="Copy the stripped SVG" data-tip-off="Nothing to copy yet">Copy stripped SVG</button>
         <button id="download" disabled type="button" aria-label="Download the stripped SVG file" data-tip="Download it as an .svg file" data-tip-off="Nothing to download yet">Download .svg</button>
         <span id="copy-status" class="sr-only" role="status" aria-live="polite"></span>
       </div>
+    </div>
+    <div class="output">
       <textarea id="output" readonly spellcheck="false" aria-label="Stripped SVG code"></textarea>
     </div>
   </div>
@@ -418,6 +420,6 @@
 </footer>
 
 <button id="to-top" class="to-top" type="button" aria-label="Back to top">&#8593;</button>
-<script type="module" src="app.js?v=1.1.7"></script>
+<script type="module" src="app.js?v=1.1.8"></script>
 </body>
 </html>
