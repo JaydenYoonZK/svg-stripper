@@ -249,7 +249,7 @@ test("points and viewBox keep separators every SVG engine accepts", () => {
   assert.equal((vbv.match(/[\s,]+/g) || []).length, 3, "viewBox keeps all three separators");
 });
 
-/* ---- regression tests from the adversarial engine review ---- */
+/* ---- regressions: the ways this engine has been broken before ---- */
 
 test("huge finite coordinates pass through untouched instead of being deleted", () => {
   // Browsers render 1e13; deleting it would erase a visible stroke.
@@ -397,7 +397,7 @@ test("pretty output is valid and re-minifies to the same bytes", () => {
   assert.equal(reMin.svg, min.svg, "pretty then minify equals a direct minify");
 });
 
-/* ---- regression tests for the reviewed bugs ---- */
+/* ---- cascade, entity, and precision regressions ---- */
 
 test("entity references in text and attributes are not double-escaped", () => {
   const src = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><text aria-label="&#169; 2026 &amp; co">Tom &amp; Jerry &#169; &#8364;</text></svg>`;
