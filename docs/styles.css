@@ -1429,11 +1429,14 @@ textarea.dropping { border-color: var(--accent); background: var(--accent-soft);
 /* The original sits on top, clipped from the divider leftward, so the left of
    the stage shows Before and the right shows the stripped After underneath. */
 #img-before.compare-top { clip-path: inset(0 calc(100% - var(--wipe)) 0 0); }
-/* A thick brand-green bar with a dark 1.5px keyline and a soft shadow, so it
-   holds a strong contrast over both the light and the dark checker tiles. */
-.compare-divider { position: absolute; top: 0; bottom: 0; left: var(--wipe); width: 4px; background: var(--accent); transform: translateX(-2px); cursor: ew-resize; touch-action: none; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55), 0 0 12px rgba(0, 0, 0, 0.4); }
+/* A thick chartreuse bar with a dark 1.5px keyline and a soft shadow, so it
+   holds a strong contrast over both the light and the dark checker tiles. It
+   uses the bright brand chartreuse in BOTH themes (a filled brand surface, like
+   the buttons), not the light theme's darker text accent, whose dark icons
+   would read low-contrast on the dark-green fill. */
+.compare-divider { position: absolute; top: 0; bottom: 0; left: var(--wipe); width: 4px; background: #abcf37; transform: translateX(-2px); cursor: ew-resize; touch-action: none; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55), 0 0 12px rgba(0, 0, 0, 0.4); }
 .compare-divider:focus-visible { outline: none; }
-.compare-grip { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2.5px rgba(0, 0, 0, 0.45), 0 3px 12px rgba(0, 0, 0, 0.6); cursor: ew-resize; }
+.compare-grip { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border-radius: 50%; background: #abcf37; box-shadow: 0 0 0 2.5px rgba(0, 0, 0, 0.45), 0 3px 12px rgba(0, 0, 0, 0.6); cursor: ew-resize; }
 .compare-grip::before { content: "\2039\203A"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-ink); font-size: 17px; font-weight: 800; }
 .compare-divider:focus-visible .compare-grip { outline: 3px solid #fff; outline-offset: 3px; }
 .compare-badge { position: absolute; top: 12px; padding: 4px 12px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; background: rgba(13, 12, 10, 0.74); color: #f3f0e9; pointer-events: none; }
@@ -1474,7 +1477,8 @@ textarea.dropping { border-color: var(--accent); background: var(--accent-soft);
 .swatch-wrap { position: relative; display: inline-flex; flex: none; }
 .swatch-cue {
   position: absolute; right: -5px; bottom: -5px; width: 18px; height: 18px; border-radius: 50%;
-  background: var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23101400' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 19h4L19 9a2 2 0 0 0-3-3L6 16z'/%3E%3C/svg%3E") center / 11px no-repeat;
+  /* Chartreuse in both themes to match the buttons and keep the dark pencil high-contrast. */
+  background: #abcf37 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23101400' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 19h4L19 9a2 2 0 0 0-3-3L6 16z'/%3E%3C/svg%3E") center / 11px no-repeat;
   border: 1.5px solid var(--panel); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45); pointer-events: none;
 }
 .color-hint { margin: 0 0 4px; color: var(--ink-mute); font-size: 0.85rem; }

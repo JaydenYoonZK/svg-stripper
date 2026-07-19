@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.7] - 2026-07-19
+
+### Changed
+
+- The before/after slider and the swatch edit badges now use the bright brand chartreuse in the light theme too, instead of the darker green, so they stay vivid and the dark icons on them stay legible.
+
 ## [1.1.6] - 2026-07-19
 
 ### Changed
