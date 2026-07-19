@@ -46,6 +46,22 @@ test("security and structured metadata remain valid", () => {
   assert.match(html, /"@type": "SoftwareApplication"/);
 });
 
+test("the CSP script hash matches the inline script it authorizes", async () => {
+  // script-src carries a hash instead of 'unsafe-inline'. If the theme-boot
+  // script changes without this hash, the page loads unthemed and broken, so
+  // the hash is recomputed here from the actual bytes.
+  const { createHash } = await import("node:crypto");
+  for (const [page, file] of [[html, "index.html"], [html404, "404.html"]]) {
+    const declared = page.match(/script-src [^;]*'sha256-([^']+)'/);
+    assert.ok(declared, `${file}: script-src must authorize the inline script by hash, not 'unsafe-inline'`);
+    assert.doesNotMatch(page.match(/script-src [^;]*/)[0], /'unsafe-inline'/, `${file}: script-src must not fall back to 'unsafe-inline'`);
+    const inline = [...page.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    assert.equal(inline.length, 1, `${file}: exactly one inline script is expected`);
+    const actual = createHash("sha256").update(inline[0], "utf8").digest("base64");
+    assert.equal(declared[1], actual, `${file}: CSP hash is stale; recompute sha256 of the inline script`);
+  }
+});
+
 test("search and social metadata point to the canonical site", () => {
   const robots = readFileSync(join(docs, "robots.txt"), "utf8");
   const sitemap = readFileSync(join(docs, "sitemap.xml"), "utf8");

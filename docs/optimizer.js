@@ -378,7 +378,7 @@ function fmtUnits(u, precision) {
   return neg ? "-" + s : s;
 }
 
-function optimizePath(d, precision) {
+function optimizePath(d, precision, report) {
   const scale = Math.pow(10, precision);
   const U = (raw) => Math.round(parseFloat(raw) * scale);
 
@@ -421,17 +421,18 @@ function optimizePath(d, precision) {
     const ch = d[i];
     let fromLetter = false;
     if (/[a-zA-Z]/.test(ch)) { cmd = ch; i++; fromLetter = true; }
-    else if (cmd == null) break; // junk before the first command: the whole path is in error, render nothing
+    else if (cmd == null) { if (report) report.pathTruncated = true; break; } // junk before the first command: the whole path is in error, render nothing
     const lower = (cmd || "").toLowerCase();
     if (lower === "z") {
       // z takes no arguments, so it only repeats via its own letter. A number
       // here is a grammar error; stop like a renderer instead of spinning on
       // the same character forever.
       if (fromLetter) { rawSegs.push({ cmd, args: [] }); continue; }
+      if (report) report.pathTruncated = true;
       break;
     }
     const count = PATH_ARGS[lower];
-    if (count == null) break; // an unknown command letter truncates the path, exactly as a renderer does
+    if (count == null) { if (report) report.pathTruncated = true; break; } // an unknown command letter truncates the path, exactly as a renderer does
     const args = [];
     let ok = true;
     for (let k = 0; k < count; k++) {
@@ -445,7 +446,7 @@ function optimizePath(d, precision) {
         args.push(num);
       }
     }
-    if (!ok) break;
+    if (!ok) { if (report) report.pathTruncated = true; break; }
     rawSegs.push({ cmd, args });
     if (lower === "m") cmd = cmd === "M" ? "L" : "l";
   }
@@ -472,7 +473,7 @@ function optimizePath(d, precision) {
       // the re-encoder instead (see the check after this loop).
       if (Math.abs(v) > hugeBound) sawHuge = true;
     }
-    if (sawNonFinite) break;
+    if (sawNonFinite) { if (report) report.pathTruncated = true; break; }
     if (sawHuge) return d;
     const nx = (k) => rel ? cx + U(seg.args[k]) : U(seg.args[k]);
     const ny = (k) => rel ? cy + U(seg.args[k]) : U(seg.args[k]);
@@ -582,10 +583,10 @@ function optimizePath(d, precision) {
 
 /* ---------- transforms over the tree ---------- */
 
-function optimizeAttrValues(node, opts) {
+function optimizeAttrValues(node, opts, report) {
   for (const a of node.attrs) {
     if (a.value == null) continue;
-    if (a.name === "d") { a.value = optimizePath(a.value, opts.precision); continue; }
+    if (a.name === "d") { a.value = optimizePath(a.value, opts.precision, report); continue; }
     if (opts.shortenColors && COLOR_ATTRS.has(a.name)) { a.value = shortenColor(a.value); continue; }
     if (TRANSFORM_ATTRS.has(a.name)) { a.value = simplifyTransform(roundNumberList(a.value, opts.transformPrecision).replace(/,\s+/g, ",")); continue; }
     // Lists like viewBox and points round their numbers but KEEP their
@@ -836,7 +837,7 @@ function transformOnce(root, refs, opts, report) {
 
       // Normalize values first, so default-value removal compares against the
       // canonical form and the whole optimize() stays idempotent.
-      optimizeAttrValues(node, opts);
+      optimizeAttrValues(node, opts, report);
       // A style or transform that emptied out (or an identity transform that
       // simplified to nothing) carries no rendering information at all.
       node.attrs = node.attrs.filter((a) =>
@@ -1085,6 +1086,7 @@ export function optimize(source, userOpts = {}) {
   if (report.handler) notes.push({ kind: "security", text: "Removed inline event handlers (on… attributes). They ran code on interaction." });
   if (report.jsurl) notes.push({ kind: "security", text: "Removed a javascript: link." });
   if (report.doctype) notes.push({ kind: "info", text: "Dropped the DOCTYPE. Modern SVG does not use one." });
+  if (report.pathTruncated) notes.push({ kind: "warning", text: "Some path data was malformed and was cut at the first invalid command, which is exactly where a browser stops drawing it. Check the preview matches what you expect." });
 
   return {
     ok: true,

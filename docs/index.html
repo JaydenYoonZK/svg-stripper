@@ -5,9 +5,9 @@
   <meta charset="UTF-8">
   <meta name="author" content="Jayden Yoon ZK">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-tGNV5xhmqmgdAsqMIABCDz+aPxU0gBddO5elaFQmOt4='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
   <title>SVG Stripper: shrink SVG code from Illustrator, Figma, and Inkscape</title>
-  <meta name="description" content="Paste a bloated SVG and strip out the editor comments, metadata, DOCTYPE, default attributes, and over-precise coordinates, while keeping gradients, masks, and animation. A before and after preview shows nothing was lost. Runs entirely in your browser.">
+  <meta name="description" content="Paste a bloated SVG and strip out the editor comments, metadata, DOCTYPE, default attributes, and over-precise coordinates, while keeping gradients, masks, and animation. A before and after preview lets you check nothing was lost. Runs entirely in your browser.">
   <link rel="canonical" href="https://jaydenyoonzk.github.io/svg-stripper/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d0c0a'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='32' fill='%23abcf37'%3E%F0%9F%92%83%3C/text%3E%3C/svg%3E">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
@@ -37,14 +37,14 @@
       document.head.appendChild(m);
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=1.2.0">
+  <link rel="stylesheet" href="styles.css?v=1.3.0">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "SVG Stripper",
     "applicationCategory": "DeveloperApplication",
-    "softwareVersion": "1.2.0",
+    "softwareVersion": "1.3.0",
     "operatingSystem": "Any (browser-based)",
     "url": "https://jaydenyoonzk.github.io/svg-stripper/",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -184,10 +184,10 @@
   <rect x="26" y="210" width="264" height="1" fill="#ffffff" fill-opacity="0.08"/>
   <g>
     <rect x="26" y="224" width="96" height="26" rx="8" fill="#a7e26a" fill-opacity="0.14" stroke="#a7e26a" stroke-opacity="0.5"/>
-    <text x="74" y="241" text-anchor="middle" fill="#a7e26a" font-family="ui-monospace, Menlo, monospace" font-size="12" font-weight="700">-64%</text>
+    <text x="74" y="241" text-anchor="middle" fill="#a7e26a" font-family="ui-monospace, Menlo, monospace" font-size="12" font-weight="700">-62%</text>
     <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" repeatCount="indefinite"/>
   </g>
-  <text x="290" y="242" text-anchor="end" fill="#8f887c" font-size="12" font-family="ui-sans-serif, system-ui, sans-serif">12.4 KB &#8594; 4.5 KB</text>
+  <text x="290" y="242" text-anchor="end" fill="#8f887c" font-size="12" font-family="ui-sans-serif, system-ui, sans-serif">5.5 KB &#8594; 2.1 KB</text>
 </svg>
     </div>
   </div>
@@ -219,15 +219,19 @@
 
   <div id="results" hidden>
     <div class="stats" id="stats" role="status"></div>
-    <div id="alerts"></div>
+    <div id="alerts" role="status" aria-live="polite"></div>
 
-    <h2 class="section-title">💃 Before and after</h2>
-    <p class="section-sub">Drag the handle to wipe between your original on the left and the stripped version on the right. Stripping alone changes nothing you can see; if you recolor below, that shows here too. The checkerboard shows through any transparency.</p>
+    <!-- Everything below is the result itself. It hides as one block when the
+         input cannot be optimized, so an error never sits above orphaned
+         headings, dead action keys, and an empty output box. -->
+    <div id="result-body" hidden>
+    <h2 class="section-title"><span aria-hidden="true">🪞</span> Before and after</h2>
+    <p class="section-sub">Drag the handle to wipe between your original on the left and the stripped version on the right. At the default settings, stripping changes nothing you can see; if you recolor below, that shows here too. The checkerboard shows through any transparency.</p>
     <div class="compare" id="compare" hidden>
       <div class="compare-stage" id="compare-stage">
         <img id="img-after" class="compare-img" alt="The stripped SVG, rendered">
         <img id="img-before" class="compare-img compare-top" alt="Your original SVG, rendered">
-        <div class="compare-divider" id="compare-divider" role="slider" tabindex="0" aria-label="Drag to wipe between the before and after image" aria-valuemin="0" aria-valuemax="100" aria-valuenow="55"><span class="compare-grip"></span></div>
+        <div class="compare-divider" id="compare-divider" role="slider" tabindex="0" aria-label="Before and after wipe position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="55"><span class="compare-grip"></span></div>
         <span class="compare-badge badge-before">Before</span>
         <span class="compare-badge badge-after">After</span>
       </div>
@@ -236,32 +240,33 @@
         <button type="button" class="bg-opt is-active" data-bg="checker" aria-pressed="true">Checkerboard</button>
         <button type="button" class="bg-opt" data-bg="#ffffff" aria-pressed="false">White</button>
         <button type="button" class="bg-opt" data-bg="#0d0c0a" aria-pressed="false">Black</button>
-        <label class="bg-opt bg-custom"><span>Custom</span><input type="color" id="bg-custom" value="#3a6ff7" aria-label="Custom preview background color"></label>
+        <label class="bg-opt bg-custom" role="button" tabindex="0" aria-pressed="false"><span>Custom</span><input type="color" id="bg-custom" value="#3a6ff7" aria-label="Custom preview background color"></label>
       </div>
     </div>
-    <p class="compare-note" id="render-note"></p>
+    <p class="compare-note" id="render-note" role="status" aria-live="polite"></p>
 
     <div id="colors" hidden>
-      <h2 class="section-title">🎨 Colors</h2>
-      <p class="section-sub">Recolor any part of the picture without leaving the page. Open the wheel from a swatch, or type a HEX, RGB, HSL, or CMYK value. Every change shows in the preview above and travels into the SVG you copy or download. CMYK converts to RGB, since SVG on the web is RGB, so the preview is the true result.</p>
+      <h2 class="section-title"><span aria-hidden="true">🎨</span> Colors</h2>
+      <p class="section-sub">Recolor any part of the picture without leaving the page. Open the wheel from any swatch; solid colors also take a typed HEX, RGB, HSL, or CMYK value, and gradient stops take HEX. Every change shows in the preview above and travels into the SVG you copy or download. CMYK converts to RGB, since SVG on the web is RGB, so the preview is the true result.</p>
       <div class="color-editor" id="color-editor"></div>
     </div>
 
     <div class="output-head">
-      <h2 class="section-title">✨ Stripped SVG</h2>
+      <h2 class="section-title"><span aria-hidden="true">✨</span> Stripped SVG</h2>
       <div class="copy-wrap">
-        <button id="copy" disabled class="primary" type="button" aria-label="Copy the stripped SVG" data-tip="Copy the stripped SVG" data-tip-off="Nothing to copy yet">Copy stripped SVG</button>
-        <button id="download" disabled type="button" aria-label="Download the stripped SVG file" data-tip="Download it as an .svg file" data-tip-off="Nothing to download yet">Download .svg</button>
+        <button id="copy" disabled class="primary" type="button" data-tip="Copy the stripped SVG" data-tip-off="Nothing to copy yet">Copy stripped SVG</button>
+        <button id="download" disabled type="button" data-tip="Download it as an .svg file" data-tip-off="Nothing to download yet">Download .svg</button>
         <span id="copy-status" class="sr-only" role="status" aria-live="polite"></span>
       </div>
     </div>
     <div class="output">
       <textarea id="output" readonly spellcheck="false" aria-label="Stripped SVG code"></textarea>
     </div>
+    </div>
   </div>
 
   <div class="prose">
-    <h2 id="how">🧹 How the stripping works</h2>
+    <h2 id="how"><span aria-hidden="true">🧹</span> How the stripping works</h2>
     <div class="why-split">
       <div>
         <p>A design tool has to remember things your website does not care about: which layer a shape lived on, the name you gave a group, the exact zoom you left the canvas at, the version of the app that saved the file. All of that gets written into the SVG. On top of it, exporters keep coordinates to six decimal places and wrap everything in namespaces and a DOCTYPE from an older era of the web.</p>
@@ -304,7 +309,7 @@
       </svg>
     </div>
 
-    <h2 id="keeps">💃 What comes off, and what stays on</h2>
+    <h2 id="keeps"><span aria-hidden="true">💃</span> What comes off, and what stays on</h2>
     <p class="full-measure">The whole trick is knowing the difference. Everything in the left column is weight with no effect on the render. Everything in the right column can change the picture, so it is kept exactly.</p>
     <div class="finds-grid">
       <div>
@@ -335,7 +340,7 @@
       </div>
     </div>
 
-    <h2 id="faq">💬 Frequently asked questions</h2>
+    <h2 id="faq"><span aria-hidden="true">💬</span> Frequently asked questions</h2>
     <div class="faq">
       <div class="faq-item">
         <h3 class="faq-q"><button type="button" id="faq-b1" aria-expanded="false" aria-controls="faq-a1"><span>Is it lossless?</span><span class="faq-icon" aria-hidden="true"></span></button></h3>
@@ -375,7 +380,7 @@
       </div>
     </div>
 
-    <h2 id="why-built">🌱 Why I built this</h2>
+    <h2 id="why-built"><span aria-hidden="true">🌱</span> Why I built this</h2>
     <div class="why-split story-split">
       <div>
         <p>Every icon and illustration across my sites started life in a design tool, and every export arrived three or four times bigger than it needed to be. I kept pasting them into an optimizer, squinting at the result to make sure a gradient had not vanished, then copying it back. I wanted one page that does the strip and shows me the before and after at the same time, so I can trust it at a glance. This is that page.</p>
@@ -422,6 +427,6 @@
 </footer>
 
 <button id="to-top" class="to-top" type="button" aria-label="Back to top">&#8593;</button>
-<script type="module" src="app.js?v=1.2.0"></script>
+<script type="module" src="app.js?v=1.3.0"></script>
 </body>
 </html>

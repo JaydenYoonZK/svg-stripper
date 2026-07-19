@@ -4,7 +4,7 @@
    requests pass through untouched. The cache name carries the release version
    and old caches are dropped on activate. */
 
-const VERSION = "?v=1.2.0";
+const VERSION = "?v=1.3.0";
 const CACHE = "svg-stripper-" + VERSION;
 const SHELL = [
   "./",
@@ -16,7 +16,9 @@ const SHELL = [
 ];
 
 addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => skipWaiting()));
+  // no-cache requests, so the versioned cache holds exactly the deployed
+  // bytes rather than whatever the HTTP cache still had from before a deploy
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL.map((u) => new Request(u, { cache: "no-cache" })))).then(() => skipWaiting()));
 });
 
 addEventListener("activate", (event) => {
@@ -33,6 +35,26 @@ addEventListener("fetch", (event) => {
   if (new URL(req.url).origin !== location.origin) return;
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
+
+    // Pages go network-first: a fresh deploy reaches the very next load
+    // instead of waiting a full visit behind a cached shell, and every
+    // query-string variant collapses into the one precached copy instead of
+    // filling the cache with duplicates. Offline still gets the shell, and an
+    // offline deep link gets the not-found page rather than a silent home.
+    if (req.mode === "navigate") {
+      const scopePath = new URL("./", location.href).pathname;
+      try {
+        const res = await fetch(req);
+        if (res && res.ok && new URL(req.url).pathname === scopePath) cache.put("./", res.clone());
+        return res;
+      } catch (error) {
+        const isRoot = new URL(req.url).pathname === scopePath;
+        const fallback = (!isRoot && await cache.match("404.html")) || await cache.match("./");
+        if (fallback) return fallback;
+        throw error;
+      }
+    }
+
     const cached = await cache.match(req);
     const network = fetch(req).then((res) => {
       if (res && res.ok) cache.put(req, res.clone());
@@ -42,14 +64,6 @@ addEventListener("fetch", (event) => {
       network.catch(() => { /* offline refresh can wait */ });
       return cached;
     }
-    try {
-      return await network;
-    } catch (error) {
-      if (req.mode === "navigate") {
-        const home = await cache.match("./");
-        if (home) return home;
-      }
-      throw error;
-    }
+    return network;
   })());
 });

@@ -3,6 +3,28 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.0] - 2026-07-19
+
+### Added
+
+- Gradient stops now take a typed HEX value beside the wheel, and recoloring a translucent paint keeps its transparency instead of silently turning it solid.
+- Malformed path data now says so: a notice explains the path was cut at the first invalid command, exactly where a browser stops drawing it.
+- Dropping selected text onto the box now loads it, alongside the existing .svg file drop.
+
+### Changed
+
+- The Custom preview background applies the moment the chip is tapped, and the chip wears the same key styling as its neighbors.
+- The paste button always answers: it fills the box, says the clipboard is empty, or spells out how to paste manually.
+- Screen readers now hear result notices and the wipe position as sentences; heading emoji stay visual only; the wipe handle focus ring reads on any backdrop; text-field focus is a clear accent outline in both themes.
+- Pages load network-first so a new release reaches the next visit, and an offline deep link shows the not-found page instead of silently opening the app.
+- The inline script is authorized by hash instead of a blanket allowance, closing the door a future escaping slip would otherwise open.
+- The hero mockup shows the bundled sample's real numbers.
+
+### Fixed
+
+- A rejected file drop no longer wipes the preview and stats of a still-valid result, and a failed file read shows its message on a fresh page.
+- An optimize error now hides the whole result area instead of leaving orphaned headings and dead buttons around the message.
+
 ## [1.2.0] - 2026-07-19
 
 ### Added

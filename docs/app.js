@@ -1,9 +1,10 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.2.0";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.3.0";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
 const results = $("results");
+const resultBody = $("result-body");
 const stats = $("stats");
 const alerts = $("alerts");
 const compare = $("compare");
@@ -67,6 +68,7 @@ function setWipe(pct) {
   wipePct = Math.max(0, Math.min(100, pct));
   compareStage.style.setProperty("--wipe", wipePct + "%");
   divider.setAttribute("aria-valuenow", String(Math.round(wipePct)));
+  divider.setAttribute("aria-valuetext", Math.round(wipePct) + "% of the original shown");
 }
 function pctFromClientX(clientX) {
   const rect = compareStage.getBoundingClientRect();
@@ -101,7 +103,6 @@ if (previewBg) {
       const on = b === active;
       b.classList.toggle("is-active", on);
       if (b.hasAttribute("aria-pressed")) b.setAttribute("aria-pressed", String(on));
-      if (b.tagName === "BUTTON") b.setAttribute("aria-disabled", String(on));
     });
     if (mode === "checker") compareStage.classList.remove("solid");
     else { compareStage.style.setProperty("--preview-bg", mode); compareStage.classList.add("solid"); }
@@ -111,8 +112,18 @@ if (previewBg) {
     setBg(btn.dataset.bg, btn);
   }));
   const bgCustom = $("bg-custom");
-  if (bgCustom) bgCustom.addEventListener("input", () => setBg(bgCustom.value, bgCustom.closest(".bg-opt")));
-  // Sync the initial locked state (aria-disabled) for whichever chip starts active.
+  if (bgCustom) {
+    const chip = bgCustom.closest(".bg-opt");
+    // Apply the stored color the moment the chip is tapped: a color input
+    // fires no event when the picker confirms an unchanged value, so without
+    // this, re-choosing the same custom color would do nothing at all.
+    chip.addEventListener("click", () => setBg(bgCustom.value, chip));
+    chip.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setBg(bgCustom.value, chip); bgCustom.click(); }
+    });
+    bgCustom.addEventListener("input", () => setBg(bgCustom.value, chip));
+  }
+  // Sync the initial locked state for whichever chip starts active.
   const initialBg = previewBg.querySelector("button.bg-opt.is-active");
   if (initialBg) setBg(initialBg.dataset.bg, initialBg);
 }
@@ -134,6 +145,11 @@ async function renderResult(final, token) {
   lastOutput = final;
   output.value = final;
   showControls(true);
+  renderNote.textContent = "";
+  // The failure note is guarded by THIS render's token. Assigned here rather
+  // than in run(), because recolor renders bump the token too and would
+  // otherwise silently mute a genuine failure.
+  imgAfter.onerror = () => { if (token === renderToken) renderNote.textContent = "The stripped SVG could not be rendered, which should not happen. Please report it via the Report an issue link in the footer."; };
   imgAfter.src = dataUri(final);
   compare.hidden = false;
   setWipe(wipePct);
@@ -186,6 +202,9 @@ async function run() {
   results.hidden = false;
 
   if (!result.ok) {
+    // Hide the whole result scaffold, not just the preview: headings, dead
+    // action keys, and an empty output box under an error read as breakage.
+    resultBody.hidden = true;
     stats.innerHTML = "";
     compare.hidden = true;
     colorsSection.hidden = true;
@@ -198,6 +217,7 @@ async function run() {
     return;
   }
 
+  resultBody.hidden = false;
   base = result.svg;
   originalBytes = result.before;
   buildColorEditor(listPaints(base));
@@ -209,7 +229,6 @@ async function run() {
 
   renderNote.textContent = "";
   imgBefore.onerror = () => { if (token === renderToken) renderNote.textContent = "The original markup could not be rendered as an image. Check that it is a complete SVG."; };
-  imgAfter.onerror = () => { if (token === renderToken) renderNote.textContent = "The stripped SVG could not be rendered, which should not happen. Please report it."; };
   imgBefore.src = dataUri(raw.trim());
   await renderResult(applyRecolor(base, recolor, currentOptions()), token);
 }
@@ -239,15 +258,37 @@ for (const el of [precision, prettify, keepMeta]) {
   });
 }
 
+// The paste button always answers: filled box, "empty" notice, or plain
+// instructions for a manual paste. A silent click reads as a dead button.
+const pasteLabel = pasteBtn.textContent;
+let pasteFlashTimer = 0, waitingForPaste = false;
+function flashPaste(msg) {
+  pasteBtn.textContent = msg;
+  clearTimeout(pasteFlashTimer);
+  pasteFlashTimer = setTimeout(() => { pasteBtn.textContent = pasteLabel; }, 2600);
+}
 pasteBtn.addEventListener("click", async () => {
+  // Read the clipboard on every device. On iOS the system shows its Paste
+  // confirmation bubble at the tap point; confirming it fills the box in one
+  // motion. That bubble is the minimum iOS allows before a page may read.
   try {
     const text = await navigator.clipboard.readText();
-    if (text) { recolor = {}; input.value = text; run(); input.focus(); }
-  } catch {
-    // Clipboard read can be blocked or unsupported; focus the box so the
-    // native paste (and the iOS paste bubble) is one tap away.
-    input.focus();
-  }
+    if (text) { recolor = {}; input.value = text; run(); input.focus(); return; }
+    flashPaste("Clipboard is empty");
+    return;
+  } catch { /* declined or unsupported, fall back to a manual paste */ }
+  waitingForPaste = true;
+  input.focus();
+  input.select(); // a manual paste then replaces the old content
+  flashPaste(matchMedia("(pointer: coarse)").matches
+    ? "Long-press the box, then Paste"
+    : (navigator.platform?.includes("Mac") ? "Press ⌘V to paste" : "Press Ctrl+V to paste"));
+});
+input.addEventListener("paste", () => {
+  if (!waitingForPaste) return;
+  waitingForPaste = false;
+  clearTimeout(pasteFlashTimer);
+  pasteBtn.textContent = pasteLabel;
 });
 
 clearBtn.addEventListener("click", () => {
@@ -286,18 +327,27 @@ downloadBtn.addEventListener("click", () => {
 input.addEventListener("drop", (e) => {
   e.preventDefault();
   const file = e.dataTransfer?.files?.[0];
-  if (!file) return;
+  if (!file) {
+    // Not a file: someone dragged selected text (SVG markup from an editor,
+    // say). preventDefault above cancels the native insertion, so do it here.
+    const text = e.dataTransfer?.getData("text/plain");
+    if (text) { recolor = {}; input.value = text; run(); }
+    return;
+  }
   // Only read something that claims to be SVG. A dropped PNG or PDF read as
   // text would fill the box with mojibake and then fail as "not an SVG".
+  // The notice is additive: whatever result is already on screen is still
+  // valid, since a rejected drop changes nothing.
   if (file.type && file.type !== "image/svg+xml" && !/\.svg$/i.test(file.name)) {
     results.hidden = false;
-    compare.hidden = true;
-    stats.innerHTML = "";
     alerts.innerHTML = `<div class="alert info" role="status">That does not look like an SVG file. Drop an .svg, or paste the code.</div>`;
     return;
   }
   const reader = new FileReader();
-  reader.onerror = () => { alerts.innerHTML = `<div class="alert info" role="status">That file could not be read.</div>`; };
+  reader.onerror = () => {
+    results.hidden = false;
+    alerts.innerHTML = `<div class="alert info" role="status">That file could not be read.</div>`;
+  };
   reader.onload = () => { recolor = {}; input.value = String(reader.result); run(); };
   reader.readAsText(file);
 });
@@ -511,6 +561,24 @@ function colorToHex(v) {
   } catch { /* canvas unavailable */ }
   return null;
 }
+// The alpha channel of a paint, as two hex digits, or "" when fully opaque.
+// A color input can only express opaque colors, so a translucent original's
+// alpha is carried alongside and re-attached to whatever the user picks;
+// without this, recoloring a 50% shadow would silently turn it solid.
+function alphaHexOf(v) {
+  const s = String(v || "").trim();
+  let m = /^#([0-9a-fA-F]{8})$/.exec(s);
+  if (m) { const a = m[1].slice(6).toLowerCase(); return a === "ff" ? "" : a; }
+  m = /^#([0-9a-fA-F]{4})$/.exec(s);
+  if (m) { const a = m[1][3].toLowerCase(); return a === "f" ? "" : a + a; }
+  m = /^(?:rgba|hsla)\([^)]*[,/]\s*([0-9.]+%?)\s*\)$/i.exec(s);
+  if (m) {
+    const a = m[1].endsWith("%") ? parseFloat(m[1]) / 100 : parseFloat(m[1]);
+    if (isFinite(a) && a >= 0 && a < 1) return Math.round(a * 255).toString(16).padStart(2, "0");
+  }
+  return "";
+}
+
 function parseFormat(fmt, value) {
   const v = value.trim();
   if (fmt === "hex") return colorToHex(v.startsWith("#") ? v : "#" + v);
@@ -532,13 +600,14 @@ function buildColorEditor(paints) {
   if (colors.length === 0 && gradients.length === 0) { colorsSection.hidden = true; colorEditor.innerHTML = ""; return; }
   colorsSection.hidden = false;
 
-  let html = `<p class="color-hint">Tap a swatch to open the color wheel, or type a HEX, RGB, HSL, or CMYK value.</p><div class="color-editor-head"><button type="button" class="color-reset" id="color-reset"${Object.keys(recolor).length ? "" : " disabled"}>Reset colors</button></div>`;
+  let html = `<p class="color-hint">Tap a swatch to open the color wheel. Solid colors take typed HEX, RGB, HSL, or CMYK; gradient stops take HEX.</p><div class="color-editor-head"><button type="button" class="color-reset" id="color-reset"${Object.keys(recolor).length ? "" : " disabled"}>Reset colors</button></div>`;
 
   for (const c of colors) {
-    const cur = recolor[c.value] || colorToHex(c.value);
+    const cur = colorToHex(recolor[c.value]) || colorToHex(c.value);
     const rgb = hexToRgb(cur), hsl = rgbToHsl(rgb.r, rgb.g, rgb.b), cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
     const label = esc(c.value);
-    html += `<div class="color-row" data-key="${label}">
+    const alpha = alphaHexOf(c.value);
+    html += `<div class="color-row" data-key="${label}"${alpha ? ` data-alpha="${alpha}"` : ""}>
       <span class="swatch-wrap"><input type="color" class="color-swatch" data-key="${label}" value="${cur}" aria-label="Color for ${label}"><span class="swatch-cue" aria-hidden="true"></span></span>
       <div class="color-name">${label}<small>${c.uses} part${c.uses > 1 ? "s" : ""}</small></div>
       <div class="color-fields">
@@ -552,13 +621,13 @@ function buildColorEditor(paints) {
 
   for (const g of gradients) {
     const stopBits = g.stops.map((s) => {
-      const cur = recolor[`grad:${g.id}:${s.index}`] || colorToHex(s.color) || "#000000";
+      const cur = colorToHex(recolor[`grad:${g.id}:${s.index}`]) || colorToHex(s.color) || "#000000";
       const pct = offsetPct(s.offset);
-      return { key: `grad:${g.id}:${s.index}`, cur, pct };
+      return { key: `grad:${g.id}:${s.index}`, cur, pct, alpha: alphaHexOf(s.color) };
     });
     const bar = stopBits.map((b) => `${b.cur} ${b.pct}%`).join(", ");
     const stopsHtml = stopBits.map((b) =>
-      `<label class="gradient-stop"><span class="swatch-wrap"><input type="color" class="color-swatch" data-key="${esc(b.key)}" value="${b.cur}" aria-label="Gradient stop at ${b.pct} percent"><span class="swatch-cue" aria-hidden="true"></span></span>${b.pct}%</label>`).join("");
+      `<div class="gradient-stop" data-key="${esc(b.key)}"${b.alpha ? ` data-alpha="${b.alpha}"` : ""}><label class="swatch-wrap"><input type="color" class="color-swatch" data-key="${esc(b.key)}" value="${b.cur}" aria-label="Gradient stop at ${b.pct} percent"><span class="swatch-cue" aria-hidden="true"></span></label><span class="stop-pct">${b.pct}%</span><label class="color-field hex">Hex<input type="text" data-fmt="hex" value="${shortHex(b.cur)}" spellcheck="false" aria-label="Hex for the gradient stop at ${b.pct} percent"></label></div>`).join("");
     html += `<div class="color-row gradient" data-grad="${esc(g.id)}">
       <div class="gradient-head"><span class="gradient-title">${g.type === "radial" ? "Radial" : "Linear"} gradient</span><div class="gradient-bar" style="background:linear-gradient(90deg, ${bar})"></div></div>
       <div class="gradient-stops">${stopsHtml}</div>
@@ -584,6 +653,8 @@ function syncColorFields(key, hex, source) {
   const sw = swatchForKey(key); // gradient stop
   if (sw) {
     if (sw !== source) sw.value = hex;
+    const stopField = sw.closest(".gradient-stop")?.querySelector('[data-fmt="hex"]');
+    if (stopField && stopField !== source) stopField.value = shortHex(hex);
     const grad = sw.closest(".color-row.gradient");
     if (grad) {
       const bar = grad.querySelector(".gradient-bar");
@@ -599,7 +670,10 @@ function syncColorFields(key, hex, source) {
 
 function updateColor(key, hex, source) {
   if (!key || !hex) return;
-  recolor[key] = shortHex(hex);
+  // Re-attach the original paint's alpha: the picker only speaks opaque.
+  const holder = source.closest("[data-alpha]") || swatchForKey(key)?.closest("[data-alpha]");
+  const alpha = holder ? holder.dataset.alpha : "";
+  recolor[key] = alpha ? colorToHex(hex) + alpha : shortHex(hex);
   syncColorFields(key, hex, source);
   const resetBtn = $("color-reset");
   if (resetBtn) resetBtn.disabled = Object.keys(recolor).length === 0;
@@ -610,7 +684,8 @@ colorEditor.addEventListener("input", (e) => {
   const el = e.target;
   if (el.classList.contains("color-swatch")) updateColor(el.dataset.key, el.value, el);
   else if (el.dataset && el.dataset.fmt) {
-    const key = el.closest(".color-row")?.dataset.key;
+    // The nearest keyed ancestor: a solid color row, or a single gradient stop.
+    const key = el.closest("[data-key]")?.dataset.key;
     const hex = parseFormat(el.dataset.fmt, el.value);
     if (key && hex) updateColor(key, hex, el);
   }
