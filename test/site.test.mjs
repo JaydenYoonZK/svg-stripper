@@ -57,7 +57,9 @@ test("the CSP script hash matches the inline script it authorizes", async () => 
     assert.doesNotMatch(page.match(/script-src [^;]*/)[0], /'unsafe-inline'/, `${file}: script-src must not fall back to 'unsafe-inline'`);
     const inline = [...page.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
     assert.equal(inline.length, 1, `${file}: exactly one inline script is expected`);
-    const actual = createHash("sha256").update(inline[0], "utf8").digest("base64");
+    // Hash the bytes as the server serves them: the repo stores LF, but a
+    // Windows checkout rewrites to CRLF, which is not what browsers hash.
+    const actual = createHash("sha256").update(inline[0].replace(/\r\n/g, "\n"), "utf8").digest("base64");
     assert.equal(declared[1], actual, `${file}: CSP hash is stale; recompute sha256 of the inline script`);
   }
 });
