@@ -4,7 +4,7 @@
    requests pass through untouched. The cache name carries the release version
    and old caches are dropped on activate. */
 
-const VERSION = "?v=1.1.2";
+const VERSION = "?v=1.1.3";
 const CACHE = "svg-stripper-" + VERSION;
 const SHELL = [
   "./",

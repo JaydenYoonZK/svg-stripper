@@ -1,6 +1,6 @@
 {
   "name": "svg-stripper",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Strip the editor bloat out of an SVG in your browser: metadata, comments, fat decimals, and dead attributes gone, gradients, masks, and animation kept, with a before and after preview so you can see nothing was lost.",
   "type": "module",
   "private": true,

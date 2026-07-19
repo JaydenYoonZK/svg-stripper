@@ -1,5 +1,5 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.1.2";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.1.3";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
@@ -632,6 +632,34 @@ if (siteNav) {
   addEventListener("resize", setNavHeight, { passive: true });
   setNavHeight();
 }
+
+// Highlight the section link for wherever the reader is. A line below the
+// sticky header decides the active section so menu jumps and scrolling agree.
+const navAnchors = [...document.querySelectorAll(".nav-links a")];
+const navSections = navAnchors.map((a) => document.getElementById(a.hash.slice(1))).filter(Boolean);
+navSections.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+function syncActiveLink() {
+  const line = (siteNav ? siteNav.offsetHeight : 0) + 40;
+  let current = null;
+  for (const sec of navSections) {
+    if (sec.getBoundingClientRect().top <= line) current = sec;
+  }
+  // At the very bottom the last section is current even when the page is too
+  // short to lift its heading up to the line.
+  if (navSections.length && Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight - 2) {
+    current = navSections[navSections.length - 1];
+  }
+  for (const a of navAnchors) {
+    const on = !!current && a.hash === "#" + current.id;
+    a.classList.toggle("active", on);
+    if (on) a.setAttribute("aria-current", "true");
+    else a.removeAttribute("aria-current");
+  }
+}
+let spyRaf = 0;
+addEventListener("scroll", () => { if (!spyRaf) spyRaf = requestAnimationFrame(() => { spyRaf = 0; syncActiveLink(); }); }, { passive: true });
+addEventListener("resize", syncActiveLink, { passive: true });
+syncActiveLink();
 
 // FAQ accordions: each question toggles its answer open. The card gets the
 // .open class the stylesheet animates, and the button tracks aria-expanded.
