@@ -1,5 +1,5 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.6.3";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.7.0";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
@@ -379,6 +379,18 @@ input.addEventListener("drop", (e) => {
   e.preventDefault();
   const text = e.dataTransfer?.getData("text/plain");
   if (text) { recolor = {}; input.value = text; run(); }
+});
+
+// The Upload button is the no-drag way in: it opens the file picker and hands
+// the choice to the same loader a drop uses. Clearing the input's value lets
+// the same file be picked twice in a row and still fire change.
+const uploadBtn = $("upload");
+const fileInput = $("file-input");
+uploadBtn.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (file) loadDroppedFile(file);
+  fileInput.value = "";
 });
 
 // Load a chunky Illustrator export so the tool has something to chew on.

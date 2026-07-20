@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.7.0] - 2026-07-20
+
+### Added
+
+- An Upload SVG button next to the paste button. Drag and drop is no help on a phone, so the button opens the file picker and loads the chosen .svg exactly the way a drop does, including the same not-an-SVG check.
+
 ## [1.6.3] - 2026-07-20
 
 ### Fixed
