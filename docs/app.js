@@ -1,5 +1,5 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.4.4";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.5.0";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
@@ -174,7 +174,7 @@ function applyColorsAndRender() {
   renderResult(applyRecolor(base, recolor, currentOptions()), ++renderToken);
 }
 
-// Coalesce recolor renders to one per frame. A native color wheel fires input
+// Coalesce recolor renders to one per frame. The color picker fires input
 // continuously while dragging, and each render re-serializes the whole SVG and
 // re-rasters the preview, which is wasted work more than once a frame.
 let recolorRaf = 0;
@@ -594,13 +594,18 @@ const offsetPct = (offset) => {
   return isFinite(p) ? Math.max(0, Math.min(100, Math.round(p))) : 0;
 };
 
+// Assigned by the picker popover below; a rebuild detaches the swatch the
+// popover is anchored to, so the editor closes it before replacing the DOM.
+let closeColorPicker = () => {};
+
 function buildColorEditor(paints) {
+  closeColorPicker();
   const colors = paints.colors.filter((c) => colorToHex(c.value));
   const gradients = paints.gradients.filter((g) => g.stops.some((s) => colorToHex(s.color)));
   if (colors.length === 0 && gradients.length === 0) { colorsSection.hidden = true; colorEditor.innerHTML = ""; return; }
   colorsSection.hidden = false;
 
-  let html = `<p class="color-hint">Tap a swatch to open the color wheel. Solid colors take typed HEX, RGB, HSL, or CMYK; gradient stops take HEX.</p><div class="color-editor-head"><button type="button" class="color-reset" id="color-reset"${Object.keys(recolor).length ? "" : " disabled"}>Reset colors</button></div>`;
+  let html = `<p class="color-hint">Tap a swatch to open the color picker. Solid colors take typed HEX, RGB, HSL, or CMYK; gradient stops take HEX.</p><div class="color-editor-head"><button type="button" class="color-reset" id="color-reset"${Object.keys(recolor).length ? "" : " disabled"}>Reset colors</button></div>`;
 
   for (const c of colors) {
     const cur = colorToHex(recolor[c.value]) || colorToHex(c.value);
@@ -608,7 +613,7 @@ function buildColorEditor(paints) {
     const label = esc(c.value);
     const alpha = alphaHexOf(c.value);
     html += `<div class="color-row" data-key="${label}"${alpha ? ` data-alpha="${alpha}"` : ""}>
-      <span class="swatch-wrap"><input type="color" class="color-swatch" data-key="${label}" value="${cur}" aria-label="Color for ${label}"><span class="swatch-cue" aria-hidden="true"></span></span>
+      <span class="swatch-wrap"><input type="color" class="color-swatch" data-key="${label}" value="${cur}" aria-label="Color for ${label}" aria-haspopup="dialog"><span class="swatch-cue" aria-hidden="true"></span></span>
       <div class="color-name">${label}<small>${c.uses} part${c.uses > 1 ? "s" : ""}</small></div>
       <div class="color-fields">
         <label class="color-field hex">Hex<input type="text" data-fmt="hex" value="${shortHex(cur)}" spellcheck="false" aria-label="Hex for ${label}"></label>
@@ -627,7 +632,7 @@ function buildColorEditor(paints) {
     });
     const bar = stopBits.map((b) => `${b.cur} ${b.pct}%`).join(", ");
     const stopsHtml = stopBits.map((b) =>
-      `<div class="gradient-stop" data-key="${esc(b.key)}"${b.alpha ? ` data-alpha="${b.alpha}"` : ""}><label class="swatch-wrap"><input type="color" class="color-swatch" data-key="${esc(b.key)}" value="${b.cur}" aria-label="Gradient stop at ${b.pct} percent"><span class="swatch-cue" aria-hidden="true"></span></label><span class="stop-pct">${b.pct}%</span><label class="color-field hex">Hex<input type="text" data-fmt="hex" value="${shortHex(b.cur)}" spellcheck="false" aria-label="Hex for the gradient stop at ${b.pct} percent"></label></div>`).join("");
+      `<div class="gradient-stop" data-key="${esc(b.key)}"${b.alpha ? ` data-alpha="${b.alpha}"` : ""}><label class="swatch-wrap"><input type="color" class="color-swatch" data-key="${esc(b.key)}" value="${b.cur}" aria-label="Gradient stop at ${b.pct} percent" aria-haspopup="dialog"><span class="swatch-cue" aria-hidden="true"></span></label><span class="stop-pct">${b.pct}%</span><label class="color-field hex">Hex<input type="text" data-fmt="hex" value="${shortHex(b.cur)}" spellcheck="false" aria-label="Hex for the gradient stop at ${b.pct} percent"></label></div>`).join("");
     html += `<div class="color-row gradient" data-grad="${esc(g.id)}">
       <div class="gradient-head"><span class="gradient-title">${g.type === "radial" ? "Radial" : "Linear"} gradient</span><div class="gradient-bar" style="background:linear-gradient(90deg, ${bar})"></div></div>
       <div class="gradient-stops">${stopsHtml}</div>
@@ -697,6 +702,253 @@ colorEditor.addEventListener("click", (e) => {
     applyColorsAndRender();
   }
 });
+
+// -------- color picker popover --------
+// Replaces the browser's built-in color dialog, which has square corners and a
+// different face in every browser. The color inputs stay in the page as the
+// source of truth: every change writes input.value and fires a bubbling
+// "input" event, so the recolor pipeline and the preview background hear
+// exactly what the native dialog used to tell them.
+(() => {
+  const hasEye = "EyeDropper" in window;
+  const pop = document.createElement("div");
+  pop.className = "cp";
+  pop.setAttribute("role", "dialog");
+  pop.setAttribute("aria-label", "Color picker");
+  pop.hidden = true;
+  pop.innerHTML = `
+    <div class="cp-sv" role="slider" tabindex="0" aria-label="Saturation and brightness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="cp-dot"></div></div>
+    <div class="cp-row">
+      ${hasEye ? `<button type="button" class="cp-eye" aria-label="Pick a color from the screen"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.9.9a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.9.9Z"/></svg></button>` : ""}
+      <span class="cp-chip" aria-hidden="true"></span>
+      <div class="cp-hue" role="slider" tabindex="0" aria-label="Hue" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0"><div class="cp-dot"></div></div>
+    </div>
+    <label class="cp-hex">Hex<input type="text" spellcheck="false" autocapitalize="off" autocomplete="off"></label>`;
+  document.body.appendChild(pop);
+  const sv = pop.querySelector(".cp-sv"), svDot = sv.firstElementChild;
+  const hue = pop.querySelector(".cp-hue"), hueDot = hue.firstElementChild;
+  const chip = pop.querySelector(".cp-chip");
+  const hexField = pop.querySelector(".cp-hex input");
+  const eye = pop.querySelector(".cp-eye");
+
+  let anchor = null, h = 0, s = 100, v = 100;
+
+  const hsvToHex = () => {
+    const f = (n) => {
+      const k = (n + h / 60) % 6;
+      return Math.round((v / 100) * (1 - (s / 100) * Math.max(0, Math.min(k, 4 - k, 1))) * 255);
+    };
+    return "#" + [f(5), f(3), f(1)].map((n) => n.toString(16).padStart(2, "0")).join("");
+  };
+  // Keeps the current hue for greys, where the hex alone cannot say which hue
+  // the square should show.
+  const setFromHex = (hex) => {
+    const { r, g, b } = hexToRgb(hex);
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+    if (d) {
+      const hh = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h = (hh * 60 + 360) % 360;
+    }
+    s = max ? (d / max) * 100 : 0;
+    v = (max / 255) * 100;
+  };
+
+  const paint = () => {
+    const hex = hsvToHex();
+    pop.style.setProperty("--cp-h", String(Math.round(h)));
+    svDot.style.left = s + "%";
+    svDot.style.top = 100 - v + "%";
+    hueDot.style.left = (h / 360) * 100 + "%";
+    chip.style.background = hex;
+    // The picked color rides along in the value text: the chip is visual-only,
+    // so this is the one place a screen reader hears the result.
+    sv.setAttribute("aria-valuenow", String(Math.round(v)));
+    sv.setAttribute("aria-valuetext", `Saturation ${Math.round(s)}%, brightness ${Math.round(v)}%, ${shortHex(hex)}`);
+    hue.setAttribute("aria-valuenow", String(Math.round(h)));
+    hue.setAttribute("aria-valuetext", `${Math.round(h)} degrees, ${shortHex(hex)}`);
+    if (document.activeElement !== hexField) hexField.value = shortHex(hex);
+    return hex;
+  };
+  const apply = () => {
+    if (anchor && !anchor.isConnected) { close(); return; }
+    const hex = paint();
+    if (!anchor) return;
+    anchor.value = hex;
+    anchor.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+
+  const place = () => {
+    // getClientRects catches an anchor hidden with its section, which stays
+    // connected but has no box for the popover to hang from.
+    if (!anchor || !anchor.isConnected || anchor.getClientRects().length === 0) { close(); return; }
+    const r = anchor.getBoundingClientRect();
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    // The visual viewport, not the layout one: on a phone the keyboard eats
+    // the bottom of the screen and only visualViewport knows by how much.
+    const vv = window.visualViewport;
+    const vpTop = vv ? vv.offsetTop : 0;
+    const vpH = vv ? vv.height : innerHeight;
+    pop.style.left = Math.min(Math.max(10, r.left + r.width / 2 - pw / 2), Math.max(10, innerWidth - pw - 10)) + "px";
+    let top = r.bottom + 10;
+    if (top + ph > vpTop + vpH - 10) top = r.top - ph - 10;
+    if (top < vpTop + 10) top = Math.max(vpTop + 10, Math.min(vpTop + vpH - ph - 10, r.bottom + 10));
+    pop.style.top = top + "px";
+  };
+
+  // Outside dismissal waits for the pointer to come back UP near where it went
+  // down. Closing on the down alone would kill the popover on the first touch
+  // of every scroll gesture; a pan cancels the pointer and never qualifies.
+  // A tap on the anchor or its wrapping label is the toggle's job, not an
+  // outside tap: closing here too would make the click reopen it at once.
+  let downAt = null;
+  const onDocDown = (e) => {
+    downAt = null;
+    if (pop.contains(e.target) || e.target === anchor) return;
+    const wrap = anchor?.closest("label, .swatch-wrap");
+    if (wrap && wrap.contains(e.target)) return;
+    downAt = { x: e.clientX, y: e.clientY };
+  };
+  const onDocUp = (e) => {
+    if (!downAt) return;
+    const tap = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 10;
+    downAt = null;
+    if (tap) close();
+  };
+  const onDocCancel = () => { downAt = null; };
+  const onKey = (e) => { if (e.key === "Escape") { const a = anchor; close(); a?.focus(); } };
+  const onScroll = () => place();
+  function close() {
+    if (pop.hidden) return;
+    const a = anchor, hadFocus = pop.contains(document.activeElement);
+    pop.hidden = true;
+    anchor = null;
+    downAt = null;
+    document.removeEventListener("pointerdown", onDocDown, true);
+    document.removeEventListener("pointerup", onDocUp, true);
+    document.removeEventListener("pointercancel", onDocCancel, true);
+    document.removeEventListener("keydown", onKey, true);
+    removeEventListener("scroll", onScroll, true);
+    removeEventListener("resize", onScroll);
+    visualViewport?.removeEventListener("resize", onScroll);
+    visualViewport?.removeEventListener("scroll", onScroll);
+    // Hiding the element that owns focus drops focus to <body>. Restore it to
+    // the swatch, deferred past the mousedown focus fixup and guarded so a
+    // click that legitimately focused something else keeps its focus.
+    if (hadFocus && a?.isConnected) setTimeout(() => {
+      if (document.activeElement === document.body) a.focus({ preventScroll: true });
+    }, 0);
+  }
+  function open(input) {
+    anchor = input;
+    setFromHex(input.value || "#000000");
+    paint();
+    pop.hidden = false;
+    place();
+    sv.focus({ preventScroll: true });
+    document.addEventListener("pointerdown", onDocDown, true);
+    document.addEventListener("pointerup", onDocUp, true);
+    document.addEventListener("pointercancel", onDocCancel, true);
+    document.addEventListener("keydown", onKey, true);
+    addEventListener("scroll", onScroll, { capture: true, passive: true });
+    addEventListener("resize", onScroll);
+    visualViewport?.addEventListener("resize", onScroll);
+    visualViewport?.addEventListener("scroll", onScroll);
+  }
+  closeColorPicker = close;
+
+  // Every color input on the page opens this popover instead of the native
+  // dialog; preventDefault is what keeps the native one shut.
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLInputElement) || t.type !== "color") return;
+    e.preventDefault();
+    if (anchor === t && !pop.hidden) close();
+    else open(t);
+  }, true);
+
+  // First finger wins: a second touch on the same slider is ignored instead
+  // of stacking a second set of move listeners, and only a primary-button
+  // press starts a drag, so right-click still just opens the context menu.
+  const drag = (el, move) => {
+    let activeId = null;
+    el.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || activeId !== null) return;
+      activeId = e.pointerId;
+      e.preventDefault();
+      el.focus({ preventScroll: true });
+      try { el.setPointerCapture(e.pointerId); } catch { /* no live pointer to capture */ }
+      move(e);
+      const onMove = (ev) => { if (ev.pointerId === activeId) move(ev); };
+      const onUp = (ev) => {
+        if (ev.pointerId !== activeId) return;
+        activeId = null;
+        el.removeEventListener("pointermove", onMove);
+        el.removeEventListener("pointerup", onUp);
+        el.removeEventListener("pointercancel", onUp);
+      };
+      el.addEventListener("pointermove", onMove);
+      el.addEventListener("pointerup", onUp);
+      el.addEventListener("pointercancel", onUp);
+    });
+  };
+  const frac = (el, x) => Math.max(0, Math.min(1, (x - el.getBoundingClientRect().left) / el.getBoundingClientRect().width));
+  drag(sv, (e) => {
+    const r = sv.getBoundingClientRect();
+    s = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * 100;
+    v = 100 - Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)) * 100;
+    apply();
+  });
+  drag(hue, (e) => { h = Math.min(359.9, frac(hue, e.clientX) * 360); apply(); });
+
+  sv.addEventListener("keydown", (e) => {
+    const step = e.shiftKey ? 10 : 2;
+    if (e.key === "ArrowLeft") s = Math.max(0, s - step);
+    else if (e.key === "ArrowRight") s = Math.min(100, s + step);
+    else if (e.key === "ArrowUp") v = Math.min(100, v + step);
+    else if (e.key === "ArrowDown") v = Math.max(0, v - step);
+    else return;
+    e.preventDefault();
+    apply();
+  });
+  hue.addEventListener("keydown", (e) => {
+    const step = e.shiftKey ? 12 : 4;
+    if (e.key === "ArrowLeft" || e.key === "ArrowDown") h = (h - step + 360) % 360;
+    else if (e.key === "ArrowRight" || e.key === "ArrowUp") h = (h + step) % 360;
+    else return;
+    e.preventDefault();
+    apply();
+  });
+
+  // Same normalizer as the row fields, so anything they take (short, long,
+  // 8-digit with alpha) works here too instead of silently bouncing.
+  hexField.addEventListener("input", () => {
+    const t = hexField.value.trim();
+    if (!t) return;
+    const hex = colorToHex(t) || (t.startsWith("#") ? null : colorToHex("#" + t));
+    if (!hex) return;
+    setFromHex(hex);
+    apply();
+  });
+  hexField.addEventListener("blur", () => { hexField.value = shortHex(hsvToHex()); });
+
+  eye?.addEventListener("click", async () => {
+    try {
+      const r = await new EyeDropper().open();
+      setFromHex(r.sRGBHex);
+      apply();
+    } catch { /* picking was cancelled */ }
+  });
+
+  // A small dialog wants a closed Tab loop; without it, Tab falls out of the
+  // popover onto whatever happens to sit after it in the document.
+  pop.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return;
+    const f = [sv, eye, hue, hexField].filter(Boolean);
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i === 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  });
+})();
 
 // -------- sponsor button magic (sparkle rim + floating hearts) --------
 // The tooltip bubble itself is pure CSS; this builds the sparkle layer sized

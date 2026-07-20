@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.0] - 2026-07-20
+
+### Changed
+
+- Swatches now open the page's own color picker: a rounded panel in the site's theme with the color square, a hue slider, a hex field, and, where the browser can sample the screen, an eyedropper. The built-in dialog had square corners and a different face in Chrome, Safari, and Firefox; this panel matches the rest of the page and follows both themes in all of them. It is keyboard-friendly too: arrow keys move the square and the hue, Escape puts you back on the swatch.
+
 ## [1.4.4] - 2026-07-20
 
 ### Changed

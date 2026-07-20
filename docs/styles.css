@@ -1550,7 +1550,7 @@ textarea.dropping { border-color: var(--accent); background: var(--accent-soft);
 
 /* Each swatch wears a small pencil badge so it reads as editable, on touch as
    well as on hover. The badge ignores pointer input so a tap still opens the
-   color wheel. */
+   color picker. */
 .swatch-wrap { position: relative; display: inline-flex; flex: none; }
 .swatch-cue {
   position: absolute; right: -5px; bottom: -5px; width: 18px; height: 18px; border-radius: 50%;
@@ -1613,3 +1613,74 @@ label.bg-opt:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--btn-
 .gradient-stops { display: flex; flex-wrap: wrap; gap: 12px; }
 .gradient-stop { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--ink-mute); font-weight: 600; }
 .gradient-stop .color-swatch { width: 34px; height: 34px; }
+
+/* The color picker popover. One instance, moved to whichever swatch opened
+   it. Rounded like every other card on the page, themed through the same
+   tokens, identical in every browser. */
+.cp {
+  position: fixed; z-index: 2300; width: 264px; padding: 14px;
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--panel); border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow), 0 18px 44px rgba(0, 0, 0, 0.4);
+}
+/* display: flex above would beat the browser's own [hidden] rule and leave a
+   closed picker painted on the page, so hidden is restated at higher weight. */
+.cp[hidden] { display: none; }
+html[data-theme="light"] .cp { box-shadow: var(--card-shadow), 0 18px 44px rgba(84, 71, 65, 0.28); }
+.cp-sv {
+  position: relative; height: 150px; border-radius: 12px; border: 1px solid var(--line-strong);
+  cursor: crosshair; touch-action: none;
+  /* The picker's own square is theme-independent on purpose: white, black,
+     and the pure hue are the coordinate system, not decoration. */
+  background:
+    linear-gradient(to top, #000, rgba(0, 0, 0, 0)),
+    linear-gradient(to right, #fff, hsl(var(--cp-h, 0) 100% 50%));
+}
+.cp-dot {
+  position: absolute; left: 100%; top: 0; width: 16px; height: 16px; border-radius: 50%;
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  transform: translate(-50%, -50%); pointer-events: none;
+}
+.cp-row { display: flex; align-items: center; gap: 10px; }
+/* A round icon button opts out of the key edge, like the theme toggle; the
+   state rules are widened to button.cp-eye so they outrank the key physics. */
+.cp-eye {
+  width: 34px; height: 34px; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; border-radius: 50%; cursor: pointer; box-shadow: none;
+  background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--ink-soft);
+  transition: color 0.12s, border-color 0.12s, transform 0.1s;
+}
+button.cp-eye:hover, button.cp-eye:active { box-shadow: none; transform: none; background: var(--panel-2); }
+@media (hover: hover) { button.cp-eye:hover { color: var(--accent); border-color: var(--accent); } }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) { button.cp-eye:hover { transform: scale(1.06); } }
+@media (prefers-reduced-motion: no-preference) { button.cp-eye:active { transform: scale(0.96); } }
+.cp-chip { width: 30px; height: 30px; flex: none; border-radius: 50%; border: 1px solid var(--line-strong); }
+/* The visible track is a 14px strip painted on ::before; the element itself
+   is 32px tall so a fingertip that misses by a few pixels still lands on it. */
+.cp-hue {
+  position: relative; flex: 1; height: 32px; border-radius: 999px;
+  cursor: pointer; touch-action: none;
+}
+.cp-hue::before {
+  content: ""; position: absolute; inset: 9px 0; border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.cp-hue .cp-dot { top: 50%; left: 0; }
+.cp-hex {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-mute); font-weight: 700;
+}
+.cp-hex input {
+  flex: 1; min-width: 0; padding: 6px 8px; background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 8px; color: var(--ink); font-family: var(--mono); font-size: 0.85rem;
+  text-transform: none; letter-spacing: 0;
+}
+.cp-hex input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cp-sv:focus-visible, .cp-hue:focus-visible, .cp-eye:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .cp { animation: cp-pop 0.16s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes cp-pop { from { opacity: 0; transform: scale(0.94); } }
+}

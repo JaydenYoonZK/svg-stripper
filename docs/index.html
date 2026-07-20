@@ -37,14 +37,14 @@
       document.head.appendChild(m);
     })();
   </script>
-  <link rel="stylesheet" href="styles.css?v=1.4.4">
+  <link rel="stylesheet" href="styles.css?v=1.5.0">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "SVG Stripper",
     "applicationCategory": "DeveloperApplication",
-    "softwareVersion": "1.4.4",
+    "softwareVersion": "1.5.0",
     "operatingSystem": "Any (browser-based)",
     "url": "https://jaydenyoonzk.github.io/svg-stripper/",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -240,14 +240,14 @@
         <button type="button" class="bg-opt is-active" data-bg="checker" aria-pressed="true">Checkerboard</button>
         <button type="button" class="bg-opt" data-bg="#ffffff" aria-pressed="false">White</button>
         <button type="button" class="bg-opt" data-bg="#0d0c0a" aria-pressed="false">Black</button>
-        <label class="bg-opt bg-custom" role="button" tabindex="0" aria-pressed="false"><span>Custom</span><input type="color" id="bg-custom" value="#3a6ff7" aria-label="Custom preview background color"></label>
+        <label class="bg-opt bg-custom" role="button" tabindex="0" aria-pressed="false"><span>Custom</span><input type="color" id="bg-custom" value="#3a6ff7" aria-label="Custom preview background color" aria-haspopup="dialog"></label>
       </div>
     </div>
     <p class="compare-note" id="render-note" role="status" aria-live="polite"></p>
 
     <div id="colors" hidden>
       <h2 class="section-title"><span aria-hidden="true">🎨</span> Colors</h2>
-      <p class="section-sub">Recolor any part of the picture without leaving the page. Open the wheel from any swatch; solid colors also take a typed HEX, RGB, HSL, or CMYK value, and gradient stops take HEX. Every change shows in the preview above and travels into the SVG you copy or download. CMYK converts to RGB, since SVG on the web is RGB, so the preview is the true result.</p>
+      <p class="section-sub">Recolor any part of the picture without leaving the page. Open the picker from any swatch; solid colors also take a typed HEX, RGB, HSL, or CMYK value, and gradient stops take HEX. Every change shows in the preview above and travels into the SVG you copy or download. CMYK converts to RGB, since SVG on the web is RGB, so the preview is the true result.</p>
       <div class="color-editor" id="color-editor"></div>
     </div>
 
@@ -375,7 +375,7 @@
       <div class="faq-item">
         <h3 class="faq-q"><button type="button" id="faq-b6" aria-expanded="false" aria-controls="faq-a6"><span>Can I change the colors?</span><span class="faq-icon" aria-hidden="true"></span></button></h3>
         <div class="faq-a" id="faq-a6" role="region" aria-labelledby="faq-b6">
-          <div class="faq-a-inner"><p>Yes. Once you paste an SVG, the Colors panel lists every solid fill and every gradient stop it found. Change any of them from the wheel or by typing a HEX, RGB, HSL, or CMYK value, and the new colors go straight into the SVG you copy or download. CMYK is there for convenience and converts to RGB, since SVG on the web is an RGB format, so the preview on screen is the true result. Parts painted the same color move together.</p></div>
+          <div class="faq-a-inner"><p>Yes. Once you paste an SVG, the Colors panel lists every solid fill and every gradient stop it found. Change any of them from the picker or by typing a HEX, RGB, HSL, or CMYK value, and the new colors go straight into the SVG you copy or download. CMYK is there for convenience and converts to RGB, since SVG on the web is an RGB format, so the preview on screen is the true result. Parts painted the same color move together.</p></div>
         </div>
       </div>
     </div>
@@ -427,6 +427,6 @@
 </footer>
 
 <button id="to-top" class="to-top" type="button" aria-label="Back to top">&#8593;</button>
-<script type="module" src="app.js?v=1.4.4"></script>
+<script type="module" src="app.js?v=1.5.0"></script>
 </body>
 </html>
