@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.6.0] - 2026-07-20
+
+### Added
+
+- Drop an .svg anywhere on the page. The drop zone used to be exactly the text box, and a drop that missed it by a few pixels made the browser navigate away to the file. Now a file dragged anywhere over the page lights up the tool card with a 💃 Drop your SVG overlay, the drop is accepted wherever it lands, and a stray drop can never take you off the page. Dragged SVG text and the paste button work as before.
+
 ## [1.5.2] - 2026-07-20
 
 ### Changed

@@ -1,5 +1,5 @@
 /*! SVG Stripper | Copyright (c) 2026 Jayden Yoon ZK | MIT License | https://github.com/JaydenYoonZK/svg-stripper */
-import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.5.2";
+import { optimize, byteLength, listPaints, applyRecolor } from "./optimizer.js?v=1.6.0";
 
 const $ = (id) => document.getElementById(id);
 const input = $("input");
@@ -321,19 +321,13 @@ downloadBtn.addEventListener("click", () => {
   a.remove();
 });
 
-// Drag an .svg file onto the box to load it.
-["dragenter", "dragover"].forEach((type) => input.addEventListener(type, (e) => { e.preventDefault(); input.classList.add("dropping"); }));
-["dragleave", "drop"].forEach((type) => input.addEventListener(type, () => input.classList.remove("dropping")));
-input.addEventListener("drop", (e) => {
-  e.preventDefault();
-  const file = e.dataTransfer?.files?.[0];
-  if (!file) {
-    // Not a file: someone dragged selected text (SVG markup from an editor,
-    // say). preventDefault above cancels the native insertion, so do it here.
-    const text = e.dataTransfer?.getData("text/plain");
-    if (text) { recolor = {}; input.value = text; run(); }
-    return;
-  }
+// Drag an .svg file anywhere over the page to load it. The tool card lights
+// up as the drop zone the moment a file drag enters the window, and the drop
+// is accepted wherever it lands, so a miss by a few pixels cannot make the
+// browser navigate away to the file and lose the page.
+const inputCard = input.closest(".card");
+
+function loadDroppedFile(file) {
   // Only read something that claims to be SVG. A dropped PNG or PDF read as
   // text would fill the box with mojibake and then fail as "not an SVG".
   // The notice is additive: whatever result is already on screen is still
@@ -350,6 +344,41 @@ input.addEventListener("drop", (e) => {
   };
   reader.onload = () => { recolor = {}; input.value = String(reader.result); run(); };
   reader.readAsText(file);
+}
+
+// Entering a child fires enter-then-leave pairs, so a depth counter is the
+// only reliable "has the drag left the window" signal.
+let dragDepth = 0;
+const isFileDrag = (e) => !!e.dataTransfer && [...e.dataTransfer.types].includes("Files");
+addEventListener("dragenter", (e) => {
+  if (!isFileDrag(e)) return;
+  e.preventDefault();
+  dragDepth++;
+  inputCard.classList.add("dropping");
+});
+addEventListener("dragleave", (e) => {
+  if (!isFileDrag(e)) return;
+  if (--dragDepth <= 0) { dragDepth = 0; inputCard.classList.remove("dropping"); }
+});
+addEventListener("dragover", (e) => { if (isFileDrag(e)) e.preventDefault(); });
+addEventListener("drop", (e) => {
+  dragDepth = 0;
+  inputCard.classList.remove("dropping");
+  if (!isFileDrag(e)) return;
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) loadDroppedFile(file);
+});
+
+// Dragged text stays scoped to the box itself: dropping selected SVG markup
+// from an editor loads it, while text dropped on the page's other inputs
+// keeps its native behavior.
+["dragenter", "dragover"].forEach((type) => input.addEventListener(type, (e) => e.preventDefault()));
+input.addEventListener("drop", (e) => {
+  if (isFileDrag(e)) return; // the window handler owns files
+  e.preventDefault();
+  const text = e.dataTransfer?.getData("text/plain");
+  if (text) { recolor = {}; input.value = text; run(); }
 });
 
 // Load a chunky Illustrator export so the tool has something to chew on.

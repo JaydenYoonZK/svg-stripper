@@ -1482,7 +1482,19 @@ input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-of
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: none; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); cursor: pointer; }
 input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: none; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); cursor: pointer; }
 
-textarea.dropping { border-color: var(--accent); background: var(--accent-soft); }
+/* The whole tool card is the drop zone while a file drag is over the page.
+   The overlay ignores pointer input so the drop lands on whatever is under
+   the cursor and bubbles to the window handler. */
+.card.dropping { position: relative; border-color: var(--accent); }
+.card.dropping::after {
+  content: "💃 Drop your SVG";
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(13, 12, 10, 0.72);
+  border: 2px dashed var(--accent); border-radius: var(--radius-lg);
+  color: var(--accent); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.01em;
+}
+html[data-theme="light"] .card.dropping::after { background: rgba(246, 244, 238, 0.82); }
 
 /* ---- Before / after wipe ----
    Both renders fill the stage with object-fit: contain, so they sit pixel for
