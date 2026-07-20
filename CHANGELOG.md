@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.6.1] - 2026-07-20
+
+### Changed
+
+- Two emoji found better jobs: the free-stripping punchline now ends in 💸, and the What comes off section is headed by 👙.
+
 ## [1.6.0] - 2026-07-20
 
 ### Added
