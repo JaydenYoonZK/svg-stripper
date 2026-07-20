@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.2] - 2026-07-20
+
+### Changed
+
+- The strip joke moved off the button and onto the tool itself. The input card is now headed 💃 Start Stripping, and the main button says Paste from clipboard again: on a touch screen there is no tooltip to decode a cute name, so the title carries the joke and the button says what it does.
+
 ## [1.5.1] - 2026-07-20
 
 ### Changed
