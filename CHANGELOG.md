@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.1] - 2026-07-20
+
+### Changed
+
+- The copy now plays the name for laughs. The hero opens with "Your SVG has been wearing way too much", the input box promises to remove only unnecessary clothing, and the main button starts the stripping. 💃 Same tool underneath; the strip joke just finally gets top billing.
+
 ## [1.5.0] - 2026-07-20
 
 ### Changed

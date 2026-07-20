@@ -90,6 +90,12 @@ h1 {
   max-width: 58ch;
   margin: 20px 0 0;
   color: var(--ink-soft);
+}
+
+/* The punchline sits close under the lede instead of a full paragraph away. */
+.lede-kick {
+  margin-top: 10px;
+  font-weight: 600;
   font-size: 1.08rem;
 }
 
