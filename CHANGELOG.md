@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.6.2] - 2026-07-20
+
+### Changed
+
+- The box now advertises both ways in: "Copy & Paste or Drag & Drop your SVG…" sits on its own line above the clothing promise, so nobody has to guess that pasting works too.
+
 ## [1.6.1] - 2026-07-20
 
 ### Changed
