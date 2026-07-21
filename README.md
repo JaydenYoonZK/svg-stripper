@@ -5,6 +5,16 @@ leaves behind that a browser never needed, keeps everything that draws a pixel,
 and shows you the before and after side by side so you can see the picture did
 not change.
 
+<p>
+  <a href="https://jaydenyoonzk.github.io/svg-stripper/"><img src="https://img.shields.io/badge/Live%20tool-open-abcf37?style=for-the-badge&logo=githubpages&logoColor=black" alt="Open the live tool"></a>
+  <a href="https://github.com/JaydenYoonZK/svg-stripper/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/JaydenYoonZK/svg-stripper/ci.yml?style=for-the-badge&label=tests" alt="CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/JaydenYoonZK/svg-stripper?style=for-the-badge" alt="MIT License"></a>
+</p>
+
+<a href="https://jaydenyoonzk.github.io/svg-stripper/">
+  <img src="docs/assets/preview.png" alt="SVG Stripper shown in light and dark themes, the hero over its before-and-after view of a bloated SVG stripped to a clean one" width="100%">
+</a>
+
 **Live tool: [jaydenyoonzk.github.io/svg-stripper](https://jaydenyoonzk.github.io/svg-stripper/)**
 
 It runs entirely in your browser. Your SVG is never uploaded, logged, or
