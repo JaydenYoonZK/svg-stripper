@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.7.4] - 2026-08-16
+
+### Fixed
+
+- On iPhones, scrolling could flash page content in the strip under the clock and battery, above the sticky menu. The cover for that strip used to live inside the blurred bar, where iOS never drew it, so it now sits just outside the bar and actually shows up.
+
 ## [1.7.3] - 2026-08-15
 
 ### Changed
