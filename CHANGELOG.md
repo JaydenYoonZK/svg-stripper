@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.7.7] - 2026-08-16
+
+### Fixed
+
+- The film grain texture used to sit in a layer pinned to the screen, and a full-screen pinned layer is the one thing that makes iOS Safari paint scrolling page content into the strip around the clock and battery. The grain now belongs to the page and scrolls along with it, so that strip stays clean and the texture looks exactly as before.
+
 ## [1.7.6] - 2026-08-16
 
 ### Fixed
