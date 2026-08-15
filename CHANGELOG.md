@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.7.5] - 2026-08-16
+
+### Fixed
+
+- Fast scrolling on an iPhone could still flash content above the menu for a single frame, because Safari can let a sticky element's repositioning fall a frame behind. The shield now rides fixed instead, pinned to the viewport by the compositor, so it cannot lag no matter how hard you fling the page.
+
 ## [1.7.4] - 2026-08-16
 
 ### Fixed
