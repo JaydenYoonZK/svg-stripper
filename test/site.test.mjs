@@ -80,4 +80,5 @@ test("the shared version is consistent across the shell", () => {
   assert.match(html, new RegExp(`styles\\.css\\?v=${version.replace(/\./g, "\\.")}`), "index stylesheet version drifted");
   assert.match(html, new RegExp(`"softwareVersion": "${version.replace(/\./g, "\\.")}"`), "JSON-LD softwareVersion drifted");
   assert.match(sw, new RegExp(`VERSION = "\\?v=${version.replace(/\./g, "\\.")}"`), "service worker version drifted");
+  assert.ok(html.includes(`>v${version}</a>`), "footer version link drifted");
 });
